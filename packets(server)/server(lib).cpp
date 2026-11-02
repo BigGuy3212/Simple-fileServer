@@ -61,7 +61,7 @@ void Server::Frame()
 			IPEndpoint newConnectionEndpoint;
 			if (listeningSocket.Accept(newSocket, &newConnectionEndpoint) == KResult::K_Sucess)
 			{
-				connections.emplace_back(IPEndpoint((newSocket, newConnectionEndpoint)));
+				connections.emplace_back(TCPconnection(newSocket, newConnectionEndpoint));
 				TCPconnection& newConnection = connections[connections.size() - 1];
 				std::cout << newConnection.toString() << " - new connection accepted" << std::endl;
 				WSAPOLLFD newConnectionFD = {};
@@ -127,7 +127,7 @@ void Server::Frame()
 
 				int bytesRecived;
 
-				bytesRecived = recv(useFD[0].fd, buf, kamNet::MaxPacketSize, 0);
+				bytesRecived = recv(useFD[i].fd, buf, kamNet::MaxPacketSize, 0);
 
 				if (bytesRecived == 0)
 				{
@@ -148,6 +148,7 @@ void Server::Frame()
 					if (error != WSAEWOULDBLOCK)
 					{
 						std::cout << "Connection lost: " << connection.toString() << std::endl;
+						std::cout << error << std::endl;
 						masterFD.erase(masterFD.begin() + i);
 						useFD.erase(useFD.begin() + i);
 						connection.Close();
