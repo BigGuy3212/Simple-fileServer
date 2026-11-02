@@ -1,0 +1,9 @@
+<Solution>
+  <Configurations>
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Project Path="kamNet/kamNet.vcxproj" Id="11bd69ef-791e-4147-af39-ae3930b4ba5e" />
+  <Project Path="packets(server)/packets(server).vcxproj" Id="a0480029-7ee3-4c90-9eea-3124364b673b" />
+  <Project Path="packets/packets.vcxproj" Id="4852efde-9129-4084-9483-b4bf99f81d1e" />
+</Solution>
