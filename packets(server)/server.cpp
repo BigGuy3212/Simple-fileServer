@@ -1,6 +1,7 @@
 #include<kamNet/kamNet.h>
 #include<iostream>
 #include<fstream>
+#include"server.h"
 
 using namespace kamNet;
 using namespace std::filesystem;
@@ -30,7 +31,7 @@ void write_to_file(std::string& data)
 	}
 }
 
-bool processPacket(Packet& packet)
+/*bool processPacket(Packet& packet)
 {
 	switch (packet.GetPacketType())
 	{
@@ -86,65 +87,16 @@ bool processPacket(Packet& packet)
 		return false;
 	}
 	return true;
-}
+}*/
 
 int main() {
-	if (Network::init())
+	Server server;
+
+	if (server.init(IPEndpoint(ip_address, port)))
 	{
-		std::cout << "Winsock API started up succesfully!\n";
-
-		Socket socket;
-		
-		if (socket.CreateSocket() == KResult::K_Sucess)
-		{
-			std::cout << "Socket created sucessfully!\n";
-			if (socket.Listen(IPEndpoint(ip_address, port), backflow) == KResult::K_Sucess)
-			{
-				std::cout << "Socket succesfully listening on port " << port << "!\n";
-				Socket newSocket;
-				if (socket.Accept(newSocket) == KResult::K_Sucess)
-				{
-					std::cout << "New connection Accepted!\n";
-
-					std::cout << sizeof(packetType) << std::endl;
-
-					Packet packet;
-
-					
-					while (true)
-					{
-
-						KResult result = newSocket.Recv(packet);
-						if (result != KResult::K_Sucess)
-						{
-							std::cout << "stopped reciving packets!\n";
-							break;
-						}
-
-						if (!processPacket(packet))
-						{
-							break;	
-						}
-					}
-
-					newSocket.CloseSocket();
-				}
-				else
-				{
-					std::cerr << "New connection Denied\n";
-				}
-			}
-			else
-			{
-				std::cerr << "Socket failed to listen on port!\n";
-			}
-			socket.CloseSocket();
-		}
-		else
-		{
-			std::cerr << "Failed to create socket!\n";
-		}
+		server.Frame();
 	}
+
 	Network::shutdown();
 	system("pause");
 	return 0;
