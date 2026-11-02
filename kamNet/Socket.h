@@ -22,7 +22,7 @@ namespace kamNet
 		KResult CreateSocket();
 		KResult CloseSocket();
 		KResult Listen(IPEndpoint ipendpoint, int backlog = 5);
-		KResult Accept(Socket& outSocket);
+		KResult Accept(Socket& outSocket, IPEndpoint* ipendpoint = nullptr);
 		KResult Connect(IPEndpoint endpoint);
 		KResult Send(const void* data, int numberOfBytes, int& bytesSent);
 		KResult Recv(void* destination, int numberOfBytes, int& bytesRecived);
@@ -30,8 +30,7 @@ namespace kamNet
 		KResult RecvAll(void* destination, int numberOfBytes);
 		KResult Send(Packet& packet);
 		KResult Recv(Packet& packet);
-		KResult Send(raw_packet& packet);
-		KResult Recv(raw_packet& packet);
+		KResult SetBlocking(bool isBlocking);
 	private:
 		KResult SetSocketOption(SocketOption option, BOOL value);
 		IPVersion ipversion = IPVersion::IPv4;

@@ -140,6 +140,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="constants.h" />
+    <ClInclude Include="Helpers.h" />
     <ClInclude Include="IPEndpoint.h" />
     <ClInclude Include="IPVersion.h" />
     <ClInclude Include="KResult.h" />
@@ -151,12 +152,14 @@
     <ClInclude Include="Network.h" />
     <ClInclude Include="kamNet.h" />
     <ClInclude Include="SocketOptions.h" />
+    <ClInclude Include="TCPconnection.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="IPEndpoint.cpp" />
     <ClCompile Include="Network.cpp" />
     <ClCompile Include="Packet.cpp" />
     <ClCompile Include="Socket.cpp" />
+    <ClCompile Include="TCPconnection.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

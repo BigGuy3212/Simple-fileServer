@@ -94,7 +94,10 @@ int main() {
 
 	if (server.init(IPEndpoint(ip_address, port)))
 	{
-		server.Frame();
+		while (true)
+		{
+			server.Frame();
+		}
 	}
 
 	Network::shutdown();

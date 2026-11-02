@@ -3,6 +3,7 @@
 #include<assert.h>
 #include<WinSock2.h>
 #include<iostream>
+#include"Helpers.h"
 
 namespace kamNet
 {
@@ -21,6 +22,9 @@ namespace kamNet
 				ip_string = ip;
 				hostname = ip;
 
+				Helpers::trim(ip_string);
+				Helpers::ltrim(hostname);
+
 				ip_bytes.resize(sizeof(ULONG));
 				memcpy(&ip_bytes[0], &addr.S_un.S_addr, sizeof(ULONG));
 
@@ -34,7 +38,6 @@ namespace kamNet
 		hints.ai_family = AF_INET;
 		addrinfo* hostinfo = nullptr;
 		result = getaddrinfo(ip, NULL, &hints, &hostinfo);
-		//returns IPv4 when IPV6 address given?
 		if (result == 0)
 		{
 			sockaddr_in* host_addr = reinterpret_cast<sockaddr_in*>(hostinfo->ai_addr);
@@ -43,6 +46,9 @@ namespace kamNet
 			inet_ntop(AF_INET, &host_addr->sin_addr, &ip_string[0], 16);
 
 			hostname = ip;
+
+			Helpers::trim(ip_string);
+			Helpers::ltrim(hostname);
 
 			ULONG ip_long = host_addr->sin_addr.S_un.S_addr;
 			ip_bytes.resize(sizeof(ULONG));
@@ -63,6 +69,9 @@ namespace kamNet
 			ip_string = ip;
 			hostname = ip;
 
+			Helpers::trim(ip_string);
+			Helpers::ltrim(hostname);
+
 			ip_bytes.resize(16);
 			memcpy(&ip_bytes[0], &addr6.u, 16);
 
@@ -82,6 +91,9 @@ namespace kamNet
 			inet_ntop(AF_INET, &host_addr->sin6_addr, &ip_string[0], 46);
 
 			hostname = ip;
+
+			Helpers::trim(ip_string);
+			Helpers::ltrim(hostname);
 
 			ip_bytes.resize(16);
 			memcpy(&ip_bytes[0], &host_addr->sin6_addr, 16);
@@ -162,7 +174,8 @@ namespace kamNet
 			inet_ntop(AF_INET6, &addrv6->sin6_addr, &ip_string[0], 46);
 			hostname = ip_string;
 		}
-		
+		Helpers::trim(ip_string);
+		Helpers::ltrim(hostname);
 	}
 
 	sockaddr_in6 IPEndpoint::GetSockAddrIPv6()

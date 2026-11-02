@@ -13,6 +13,8 @@ bool Client::connect(IPEndpoint ip)
 		socket = Socket(ip.GetIpVersion());
 		if (socket.CreateSocket() == KResult::K_Sucess)
 		{
+			if (socket.SetBlocking(true) != KResult::K_Sucess)
+				return false;
 
 			std::cout << "Socket created sucessfully!\n";
 

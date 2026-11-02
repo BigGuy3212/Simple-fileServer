@@ -40,12 +40,28 @@ bool Server::init(IPEndpoint ip)
 
 void Server::Frame()
 {
-	Socket newSocket;
-	if (listeningSocket.Accept(newSocket) == KResult::K_Sucess)
+	WSAPOLLFD listeningSocketFD = {};
+	listeningSocketFD.fd = listeningSocket.GetHandle();
+	listeningSocketFD.events = POLLRDNORM;
+	listeningSocketFD.revents = 0;
+
+	if (WSAPoll(&listeningSocketFD, 1, 1) > 0)
 	{
-		std::cout << "New connection Accepted!\n";
+		if (listeningSocketFD.revents & POLLRDNORM)
+		{
+			Socket newSocket;
+			IPEndpoint newConnectionEndpoint;
+			if (listeningSocket.Accept(newSocket, &newConnectionEndpoint) == KResult::K_Sucess)
+			{
+				TCPconnection newConnection(newSocket, newConnectionEndpoint);
+				std::cout << newConnection.toString() << " - new connection accepted" << std::endl;
 
-		newSocket.CloseSocket();
-
+				newConnection.Close();
+			}
+			else
+			{
+				std::cout << "Failed to accept connection\n";
+			}
 		}
+	}
 }

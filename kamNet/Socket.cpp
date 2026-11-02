@@ -29,6 +29,11 @@ namespace kamNet
 			return KResult::K_GenericError;
 		}
 
+		if (SetBlocking(false) != KResult::K_Sucess)
+		{
+			return KResult::K_GenericError;
+		}
+
 		if (SetSocketOption(TCP_NoDelay, TRUE) != KResult::K_Sucess)
 		{
 			return KResult::K_GenericError;
@@ -145,7 +150,7 @@ namespace kamNet
 		return KResult::K_Sucess;
 	}
 
-	KResult Socket::Accept(Socket& outSocket)
+	KResult Socket::Accept(Socket& outSocket, IPEndpoint* ipendpoint)
 	{
 		assert(ipversion == IPVersion::IPv4 || ipversion == IPVersion::IPv6);
 
@@ -161,9 +166,10 @@ namespace kamNet
 				return KResult::K_GenericError;
 			}
 
-			IPEndpoint newConnectionEndpoint((sockaddr*)&addr);
-			std::cout << "New connection accepted! \n";
-			newConnectionEndpoint.Print();
+			if (ipendpoint != nullptr)
+			{
+				*ipendpoint = IPEndpoint((sockaddr*)&addr);
+			}
 
 			outSocket = Socket(IPVersion::IPv4, acceptedConnectHandle);
 		}
@@ -179,9 +185,10 @@ namespace kamNet
 				return KResult::K_GenericError;
 			}
 
-			IPEndpoint newConnectionEndpoint((sockaddr*)&addr);
-			std::cout << "New connection accepted! \n";
-			newConnectionEndpoint.Print();
+			if (ipendpoint != nullptr)
+			{
+				*ipendpoint = IPEndpoint((sockaddr*)&addr);
+			}
 
 			outSocket = Socket(IPVersion::IPv6, acceptedConnectHandle);
 		}
@@ -302,24 +309,6 @@ namespace kamNet
 		return KResult::K_Sucess;
 	}
 
-	KResult Socket::Send(raw_packet& packet)
-	{
-		uint16_t encodedPacketSize = htons(packet.buf.size());
-		KResult result = SendAll(&encodedPacketSize, sizeof(uint16_t));
-		if (result != KResult::K_Sucess)
-		{
-			return KResult::K_GenericError;
-		}
-
-		result = SendAll(packet.buf.data(), packet.buf.size());
-		if (result != KResult::K_Sucess)
-		{
-			return KResult::K_GenericError;
-		}
-
-		return KResult::K_Sucess;
-	}
-
 	KResult Socket::Recv(Packet& packet)
 	{
 		packet.Clear();
@@ -341,6 +330,21 @@ namespace kamNet
 		result = RecvAll(&packet.buf[0], buffersize);
 		if (result != KResult::K_Sucess)
 		{
+			return KResult::K_GenericError;
+		}
+
+		return KResult::K_Sucess;
+	}
+
+	KResult Socket::SetBlocking(bool isBlocking)
+	{
+		unsigned long Blocking = 0;
+		unsigned long nonBlocking = 1;
+
+		int result = ioctlsocket(handle, FIONBIO, isBlocking ? &Blocking : &nonBlocking);
+		if (result == SOCKET_ERROR)
+		{
+			int error = WSAGetLastError();
 			return KResult::K_GenericError;
 		}
 
