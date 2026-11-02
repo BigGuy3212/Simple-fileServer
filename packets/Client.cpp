@@ -21,7 +21,7 @@ bool Client::connect(IPEndpoint ip)
 			if (socket.Connect(ip) == KResult::K_Sucess)
 			{
 				std::cout << "Succesfully connected to the server on " << ip.GetIpString() << "\n";
-
+				isConnected = true;
 				return true;
 			}
 			else

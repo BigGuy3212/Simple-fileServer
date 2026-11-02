@@ -213,6 +213,4 @@ namespace kamNet
 			std::cout << (int)digit << "\n";
 		}
 	}
-
-	
 }

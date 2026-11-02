@@ -1,6 +1,7 @@
 #pragma once
 
 #include<kamNet/kamNet.h>
+#include<vector>
 
 using namespace kamNet;
 
@@ -12,4 +13,6 @@ public:
 
 private:
 	Socket listeningSocket;
+	std::vector<TCPconnection> connections;
+	std::vector<WSAPOLLFD> masterFD;
 };
