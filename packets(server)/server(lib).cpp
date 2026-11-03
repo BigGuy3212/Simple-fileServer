@@ -50,6 +50,14 @@ bool Server::init(IPEndpoint ip)
 
 void Server::Frame()
 {
+	for (int i = 0; i < connections.size(); i++)
+	{
+		if (connections[i].pm_outgoing.HasPendingPackets())
+		{
+			masterFD[i + 1].events = POLLRDNORM | POLLWRNORM;
+		}
+	}
+
 	useFD = masterFD;
 
 	if (WSAPoll(useFD.data(), useFD.size(), 1) > 0)
@@ -66,7 +74,7 @@ void Server::Frame()
 				std::cout << newConnection.toString() << " - new connection accepted" << std::endl;
 				WSAPOLLFD newConnectionFD = {};
 				newConnectionFD.fd = newSocket.GetHandle();
-				newConnectionFD.events = POLLRDNORM | POLLWRNORM;
+				newConnectionFD.events = POLLRDNORM;
 				newConnectionFD.revents = 0;
 				masterFD.push_back(newConnectionFD);
 
@@ -225,6 +233,11 @@ void Server::Frame()
 							break;
 						}
 					}
+				}
+
+				if (!pm.HasPendingPackets())
+				{
+					masterFD[i].events = POLLRDNORM;
 				}
 			}
 		}

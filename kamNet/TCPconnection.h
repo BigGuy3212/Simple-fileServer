@@ -9,6 +9,7 @@ namespace kamNet
 	{
 	public:
 		TCPconnection(Socket socket, IPEndpoint ipendpoint);
+		TCPconnection() :socket(Socket()) {}
 		void Close();
 		std::string toString();
 		Socket socket;

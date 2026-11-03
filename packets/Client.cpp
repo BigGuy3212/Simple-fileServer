@@ -20,9 +20,23 @@ bool Client::connect(IPEndpoint ip)
 
 			if (socket.Connect(ip) == KResult::K_Sucess)
 			{
-				std::cout << "Succesfully connected to the server on " << ip.GetIpString() << "\n";
-				isConnected = true;
-				return true;
+				if (socket.SetBlocking(false) == KResult::K_Sucess)
+				{
+					std::cout << "Succesfully connected to the server on " << ip.GetIpString() << "\n";
+
+					connection = TCPconnection(socket, ip);
+					masterFD.fd = connection.socket.GetHandle();
+					masterFD.events = POLLRDNORM;
+					masterFD.revents = 0;
+
+					std::shared_ptr<Packet> helloPacket = std::make_shared<Packet>(packetType::PT_ChatMessage);
+					*helloPacket << std::string("Hello from client");
+
+					connection.pm_outgoing.Append(helloPacket);
+
+					isConnected = true;
+					return true;
+				}
 			}
 			else
 			{
@@ -45,66 +59,179 @@ bool Client::IsConnected()
 
 bool Client::Frame()
 {
-	/*
-	KResult result;
-	
-	Packet StringPacket(packetType::PT_ChatMessage);
-	StringPacket << std::string("The string packet!");
-
-	Packet integerPacket(packetType::PT_IntegerArray);
-	uint32_t arraySize = 6;
-	uint32_t integerArray[6] = { 2, 6, 3, 2, 43, 2 };
-	integerPacket << arraySize;
-	for (auto integer : integerArray)
+	if (connection.pm_outgoing.HasPendingPackets())
 	{
-		integerPacket << integer;
+		masterFD.events = POLLRDNORM | POLLWRNORM;
 	}
 
-	std::cout << "sent packet" << std::endl;
+	useFD = masterFD;
 
-	if (rand() % 2 == 0)
+	if (WSAPoll(&useFD, 1, 1) > 0)
 	{
-		result = socket.Send(StringPacket);
+
+		if (useFD.revents & POLLERR)
+		{
+			CloseConnection("Poll error");
+
+			return false;
+		}
+
+		if (useFD.revents & POLLHUP)
+		{
+			CloseConnection("Poll hangup");
+
+			return false;
+		}
+
+		if (useFD.revents & POLLNVAL)
+		{
+			CloseConnection("Invalid socket");
+
+			return false;
+		}
+
+		if (useFD.revents & POLLRDNORM)
+		{
+
+			int bytesRecived = 0;
+
+			if (connection.pm_incoming.currentTask == PacketManagerTask::ProcessPacketSize)
+			{
+				bytesRecived = recv(useFD.fd, (char*)&connection.pm_incoming.currentPacketSize + connection.pm_incoming.currentPacketExtractionOffset, sizeof(uint16_t) - connection.pm_incoming.currentPacketExtractionOffset, 0);
+			}
+			else
+			{
+				bytesRecived = recv(useFD.fd, (char*)&connection.buffer + connection.pm_incoming.currentPacketExtractionOffset, connection.pm_incoming.currentPacketSize - connection.pm_incoming.currentPacketExtractionOffset, 0);
+			}
+
+			if (bytesRecived == 0)
+			{
+				CloseConnection("Recv == 0");
+
+				return false;
+			}
+
+			if (bytesRecived == SOCKET_ERROR)
+			{
+				int error = WSAGetLastError();
+				if (error != WSAEWOULDBLOCK)
+				{
+					CloseConnection("Recv < 0");
+					return false;
+				}
+
+			}
+
+			if (bytesRecived > 0)
+			{
+				connection.pm_incoming.currentPacketExtractionOffset += bytesRecived;
+				if (connection.pm_incoming.currentTask == PacketManagerTask::ProcessPacketSize)
+				{
+					if (connection.pm_incoming.currentPacketExtractionOffset == sizeof(uint16_t))
+					{
+						connection.pm_incoming.currentPacketSize = ntohs(connection.pm_incoming.currentPacketSize);
+						if (connection.pm_incoming.currentPacketSize > kamNet::MaxPacketSize)
+						{
+							CloseConnection("Packet too large!");
+							return false;
+						}
+						connection.pm_incoming.currentPacketExtractionOffset = 0;
+						connection.pm_incoming.currentTask = PacketManagerTask::ProcessPacketContents;
+					}
+				}
+				else
+				{
+					if (connection.pm_incoming.currentPacketExtractionOffset == connection.pm_incoming.currentPacketSize)
+					{
+						std::shared_ptr<Packet> packet = std::make_shared<Packet>();
+
+						packet->buf.resize(connection.pm_incoming.currentPacketSize);
+						memcpy(&packet->buf[0], &connection.buffer, connection.pm_incoming.currentPacketSize);
+
+						connection.pm_incoming.Append(packet);
+
+						connection.pm_incoming.currentPacketSize = 0;
+						connection.pm_incoming.currentPacketExtractionOffset = 0;
+						connection.pm_incoming.currentTask = PacketManagerTask::ProcessPacketSize;
+					}
+				}
+			}
+		}
+
+		if (useFD.revents & POLLWRNORM)
+		{
+			PacketManager& pm = connection.pm_outgoing;
+
+			while (pm.HasPendingPackets())
+			{
+				if (pm.currentTask == PacketManagerTask::ProcessPacketSize)
+				{
+					pm.currentPacketSize = pm.Retrive()->buf.size();
+					uint16_t bigEndiaPacketSize = htons(pm.currentPacketSize);
+					int bytesSent = send(useFD.fd, (char*)(&bigEndiaPacketSize) + pm.currentPacketExtractionOffset, sizeof(uint16_t) - pm.currentPacketExtractionOffset, 0);
+					if (bytesSent > 0)
+					{
+						pm.currentPacketExtractionOffset += bytesSent;
+					}
+
+					if (pm.currentPacketExtractionOffset == sizeof(uint16_t))
+					{
+						pm.currentPacketExtractionOffset = 0;
+						pm.currentTask = PacketManagerTask::ProcessPacketContents;
+					}
+					else
+					{
+						break;
+					}
+				}
+				else
+				{
+					char* pBuffer = &pm.Retrive()->buf[0];
+
+					int bytesSent = send(useFD.fd, (char*)(pBuffer)+pm.currentPacketExtractionOffset, pm.currentPacketSize - pm.currentPacketExtractionOffset, 0);
+					if (bytesSent > 0)
+					{
+						pm.currentPacketExtractionOffset += bytesSent;
+					}
+
+					if (pm.currentPacketExtractionOffset == pm.currentPacketSize)
+					{
+						pm.currentPacketExtractionOffset = 0;
+						pm.currentTask = PacketManagerTask::ProcessPacketSize;
+						pm.pop();
+					}
+					else
+					{
+						break;
+					}
+				}
+			}
+			if (connection.pm_outgoing.HasPendingPackets())
+			{
+				masterFD.events = POLLRDNORM;
+			}
+		}
 	}
-	else
+	while (connection.pm_incoming.HasPendingPackets())
 	{
-		result = socket.Send(integerPacket);
+		std::shared_ptr<Packet> frontPacket = connection.pm_incoming.Retrive();
+		if (!processPacket(frontPacket))
+		{
+			CloseConnection("Failed to process incoming packet!\n");
+			return false;
+		}
+		connection.pm_incoming.pop();
 	}
-
-	if (result != KResult::K_Sucess)
-	{
-		isConnected = false;
-		return false;
-	}
-
-	Sleep(500);
-	return true;*/
-
-	Packet incomingPacket;
-	if (socket.Recv(incomingPacket) != KResult::K_Sucess)
-	{
-		std::cout << "packet lost" << std::endl;
-		isConnected = false;
-		return false;
-	}
-
-	if (!processPacket(incomingPacket))
-	{
-		isConnected = false;
-		return false;
-	}
-
-	return true;
 }
 
-bool Client::processPacket(Packet& packet)
+bool Client::processPacket(std::shared_ptr<Packet> packet)
 {
-	switch (packet.GetPacketType())
+	switch (packet->GetPacketType())
 	{
 	case packetType::PT_ChatMessage:
 	{
 		std::string chatmessage;
-		packet >> chatmessage;
+		*packet >> chatmessage;
 		std::cout << "Chat Message: " << chatmessage << std::endl;
 		break;
 	}
@@ -112,12 +239,12 @@ bool Client::processPacket(Packet& packet)
 	case packetType::PT_IntegerArray:
 	{
 		uint32_t arraySize = 0;
-		packet >> arraySize;
+		*packet >> arraySize;
 		std::cout << "Array Size: " << arraySize << std::endl;
 		for (uint32_t i = 0; i < arraySize; i++)
 		{
 			uint32_t element = 0;
-			packet >> element;
+			*packet >> element;
 			std::cout << "Element[" << i << "] - " << element << std::endl;
 		}
 		break;
@@ -153,4 +280,11 @@ bool Client::processPacket(Packet& packet)
 		return false;
 	}
 	return true;
+}
+
+void Client::CloseConnection(std::string reason)
+{
+	masterFD.fd = 0;
+	isConnected = false;
+	connection.Close();
 }
