@@ -66,9 +66,14 @@ void Server::Frame()
 				std::cout << newConnection.toString() << " - new connection accepted" << std::endl;
 				WSAPOLLFD newConnectionFD = {};
 				newConnectionFD.fd = newSocket.GetHandle();
-				newConnectionFD.events = POLLRDNORM;
+				newConnectionFD.events = POLLRDNORM | POLLWRNORM;
 				newConnectionFD.revents = 0;
 				masterFD.push_back(newConnectionFD);
+
+				std::shared_ptr<Packet> stringPacket = std::make_shared<Packet>(packetType::PT_ChatMessage);
+				*stringPacket << std::string("Welcome to the server");
+
+				newConnection.pm_outgoing.Append(stringPacket);
 			}
 			else
 			{
@@ -168,6 +173,56 @@ void Server::Frame()
 							connection.pm_incoming.currentPacketSize = 0;
 							connection.pm_incoming.currentPacketExtractionOffset = 0;
 							connection.pm_incoming.currentTask = PacketManagerTask::ProcessPacketSize;
+						}
+					}
+				}
+			}
+
+			if (useFD[i].revents & POLLWRNORM)
+			{
+				PacketManager& pm = connection.pm_outgoing;
+
+				while (pm.HasPendingPackets())
+				{
+					if (pm.currentTask == PacketManagerTask::ProcessPacketSize)
+					{
+						pm.currentPacketSize = pm.Retrive()->buf.size();
+						uint16_t bigEndiaPacketSize = htons(pm.currentPacketSize);
+						int bytesSent = send(useFD[i].fd, (char*)(&bigEndiaPacketSize) + pm.currentPacketExtractionOffset, sizeof(uint16_t) - pm.currentPacketExtractionOffset, 0);
+						if (bytesSent > 0)
+						{
+							pm.currentPacketExtractionOffset += bytesSent;
+						}
+
+						if (pm.currentPacketExtractionOffset == sizeof(uint16_t))
+						{
+							pm.currentPacketExtractionOffset = 0;
+							pm.currentTask = PacketManagerTask::ProcessPacketContents;
+						}
+						else
+						{
+							break;
+						}
+					}
+					else
+					{
+						char* pBuffer = &pm.Retrive()->buf[0];
+
+						int bytesSent = send(useFD[i].fd, (char*)(pBuffer) + pm.currentPacketExtractionOffset, pm.currentPacketSize - pm.currentPacketExtractionOffset, 0);
+						if (bytesSent > 0)
+						{
+							pm.currentPacketExtractionOffset += bytesSent;
+						}
+
+						if (pm.currentPacketExtractionOffset == pm.currentPacketSize)
+						{
+							pm.currentPacketExtractionOffset = 0;
+							pm.currentTask = PacketManagerTask::ProcessPacketSize;
+							pm.pop();
+						}
+						else
+						{
+							break;
 						}
 					}
 				}

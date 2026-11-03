@@ -45,6 +45,7 @@ bool Client::IsConnected()
 
 bool Client::Frame()
 {
+	/*
 	KResult result;
 	
 	Packet StringPacket(packetType::PT_ChatMessage);
@@ -77,5 +78,79 @@ bool Client::Frame()
 	}
 
 	Sleep(500);
+	return true;*/
+
+	Packet incomingPacket;
+	if (socket.Recv(incomingPacket) != KResult::K_Sucess)
+	{
+		std::cout << "packet lost" << std::endl;
+		isConnected = false;
+		return false;
+	}
+
+	if (!processPacket(incomingPacket))
+	{
+		isConnected = false;
+		return false;
+	}
+
+	return true;
+}
+
+bool Client::processPacket(Packet& packet)
+{
+	switch (packet.GetPacketType())
+	{
+	case packetType::PT_ChatMessage:
+	{
+		std::string chatmessage;
+		packet >> chatmessage;
+		std::cout << "Chat Message: " << chatmessage << std::endl;
+		break;
+	}
+
+	case packetType::PT_IntegerArray:
+	{
+		uint32_t arraySize = 0;
+		packet >> arraySize;
+		std::cout << "Array Size: " << arraySize << std::endl;
+		for (uint32_t i = 0; i < arraySize; i++)
+		{
+			uint32_t element = 0;
+			packet >> element;
+			std::cout << "Element[" << i << "] - " << element << std::endl;
+		}
+		break;
+	}
+	/*case packetType::PT_Save:
+	{
+		std::string request;
+		packet >> request;
+
+		newest_file = "C:/Users/kamil/Downloads/" + request;
+
+		std::ofstream newfile("C:/Users/kamil/Downloads/" + request, std::ios::binary);
+
+		file.open(newest_file, std::ios::out | std::ios::binary);
+
+		break;
+	}
+
+	case packetType::PT_file:
+	{
+		packet >> buf;
+
+		std::cout << buf << std::endl;
+
+		write_to_file(buf);
+
+		buf.clear();
+
+		break;
+	}*/
+
+	default:
+		return false;
+	}
 	return true;
 }
