@@ -12,7 +12,7 @@ public:
 	void Frame();
 private:
 	void CloseConnection(int connectionIndex, std::string reason);
-	bool ProcessPacket(Packet& packet);
+	bool ProcessPacket(std::shared_ptr<Packet> packet);
 	Socket listeningSocket;
 	std::vector<TCPconnection> connections;
 	std::vector<WSAPOLLFD> masterFD;

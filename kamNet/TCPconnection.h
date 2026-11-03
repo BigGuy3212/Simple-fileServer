@@ -1,15 +1,10 @@
 #pragma once
 
 #include"Socket.h"
+#include"PacketManager.h"
 
 namespace kamNet
 {
-	enum PacketTask
-	{
-		ProcessPacketSize,
-		ProcessPacketContents
-	};
-
 	class TCPconnection
 	{
 	public:
@@ -18,9 +13,8 @@ namespace kamNet
 		std::string toString();
 		Socket socket;
 
-		PacketTask task = PacketTask::ProcessPacketSize;
-		int extractionOffset = 0;
-		uint16_t packetSize = 0;
+		PacketManager pm_incoming;
+		PacketManager pm_outgoing;
 		char buffer[kamNet::MaxPacketSize];
 	private:
 		IPEndpoint ipendpoint;

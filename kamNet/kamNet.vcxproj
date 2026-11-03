@@ -146,6 +146,7 @@
     <ClInclude Include="KResult.h" />
     <ClInclude Include="packet.h" />
     <ClInclude Include="PacketExeption.h" />
+    <ClInclude Include="PacketManager.h" />
     <ClInclude Include="Packet_type.h" />
     <ClInclude Include="Socket.h" />
     <ClInclude Include="SocketHandler.h" />
@@ -158,6 +159,7 @@
     <ClCompile Include="IPEndpoint.cpp" />
     <ClCompile Include="Network.cpp" />
     <ClCompile Include="Packet.cpp" />
+    <ClCompile Include="PacketManager.cpp" />
     <ClCompile Include="Socket.cpp" />
     <ClCompile Include="TCPconnection.cpp" />
   </ItemGroup>
