@@ -50,7 +50,7 @@ bool Server::init(IPEndpoint ip)
 
 void Server::Frame()
 {
-	std::vector<WSAPOLLFD> useFD = masterFD;
+	useFD = masterFD;
 
 	if (WSAPoll(useFD.data(), useFD.size(), 1) > 0)
 	{
@@ -76,7 +76,7 @@ void Server::Frame()
 			}
 		}
 
-		for (int i = 1; i < useFD.size(); i++)
+		for (int i = useFD.size() - 1; i >= 1; i--)
 		{
 			int connectionIndex = i - 1;
 
@@ -84,61 +84,45 @@ void Server::Frame()
 
 			if (useFD[i].revents & POLLERR)
 			{
-				std::cout << "Poll error occured on: " << connection.toString() << std::endl;
-				masterFD.erase(masterFD.begin() + i);
-				useFD.erase(useFD.begin() + i);
-				connection.Close();
+				CloseConnection(connectionIndex, "Poll error");
 
-				connections.erase(connections.begin() + connectionIndex);
-
-				i -= 1;
 				continue;
 			}
 
 			if (useFD[i].revents & POLLHUP)
 			{
-				std::cout << "Poll error occured on: " << connection.toString() << std::endl;
-				masterFD.erase(masterFD.begin() + i);
-				useFD.erase(useFD.begin() + i);
-				connection.Close();
+				CloseConnection(connectionIndex, "Poll hangup");
 
-				connections.erase(connections.begin() + connectionIndex);
-
-				i -= 1;
 				continue;
 			}
 
 			if (useFD[i].revents & POLLNVAL)
 			{
-				std::cout << "Invalid socket used on: " << connection.toString() << std::endl;
-				masterFD.erase(masterFD.begin() + i);
-				useFD.erase(useFD.begin() + i);
-				connection.Close();
+				CloseConnection(connectionIndex, "Invalid socket");
 
-				connections.erase(connections.begin() + connectionIndex);
-
-				i -= 1;
 				continue;
 			}
 
 			if (useFD[i].revents & POLLRDNORM)
 			{
-				char buf[kamNet::MaxPacketSize];
 
-				int bytesRecived;
+				int bytesRecived = 0;
 
-				bytesRecived = recv(useFD[i].fd, buf, kamNet::MaxPacketSize, 0);
+				if (connection.task == PacketTask::ProcessPacketSize)
+				{
+					bytesRecived = recv(useFD[i].fd, (char*) & connection.packetSize + connection.extractionOffset, sizeof(uint16_t) - connection.extractionOffset, 0);
+				}
+				else
+				{
+					bytesRecived = recv(useFD[i].fd, (char*)&connection.buffer + connection.extractionOffset, connection.packetSize - connection.extractionOffset, 0);
+				}
+
+				
 
 				if (bytesRecived == 0)
 				{
-					std::cout << "Connection lost on: " << connection.toString() << std::endl;
-					masterFD.erase(masterFD.begin() + i);
-					useFD.erase(useFD.begin() + i);
-					connection.Close();
+					CloseConnection(connectionIndex, "Recv == 0");
 
-					connections.erase(connections.begin() + connectionIndex);
-
-					i -= 1;
 					continue;
 				}
 
@@ -147,15 +131,7 @@ void Server::Frame()
 					int error = WSAGetLastError();
 					if (error != WSAEWOULDBLOCK)
 					{
-						std::cout << "Connection lost: " << connection.toString() << std::endl;
-						std::cout << error << std::endl;
-						masterFD.erase(masterFD.begin() + i);
-						useFD.erase(useFD.begin() + i);
-						connection.Close();
-
-						connections.erase(connections.begin() + connectionIndex);
-
-						i -= 1;
+						CloseConnection(connectionIndex, "Recv < 0");
 						continue;
 					}
 
@@ -163,9 +139,114 @@ void Server::Frame()
 
 				if (bytesRecived > 0)
 				{
+					connection.extractionOffset += bytesRecived;
+					if (connection.task == PacketTask::ProcessPacketSize)
+					{
+						if (connection.extractionOffset == sizeof(uint16_t))
+						{
+							connection.packetSize = ntohs(connection.packetSize);
+							if (connection.packetSize > kamNet::MaxPacketSize)
+							{
+								CloseConnection(connectionIndex, "Packet too large!");
+								continue;
+							}
+							connection.extractionOffset = 0;
+							connection.task = PacketTask::ProcessPacketContents;
+						}
+					}
+					else
+					{
+						if (connection.extractionOffset == connection.packetSize)
+						{
+							Packet packet;
+
+							packet.buf.resize(connection.packetSize);
+							memcpy(&packet.buf[0], &connection.buffer, connection.packetSize);
+
+							if (!ProcessPacket(packet))
+							{
+								CloseConnection(connectionIndex, "Failed to process packet!\n");
+							}
+
+							connection.packetSize = 0;
+							connection.extractionOffset = 0;
+							connection.task = PacketTask::ProcessPacketSize;
+						}
+					}
+
 					std::cout << connection.toString() << " - Message size: " << bytesRecived << std::endl;
 				}
 			}
 		}
 	}
+}
+
+void Server::CloseConnection(int connectionIndex, std::string reason)
+{
+	TCPconnection& connection = connections[connectionIndex];
+	std::cout << "[" << reason <<"] - Connection lost: " << connection.toString() << std::endl;
+	masterFD.erase(masterFD.begin() + (connectionIndex + 1));
+	useFD.erase(useFD.begin() + (connectionIndex + 1));
+	connection.Close();
+
+	connections.erase(connections.begin() + connectionIndex);
+}
+
+bool Server::ProcessPacket(Packet& packet)
+{
+	switch (packet.GetPacketType())
+	{
+	case packetType::PT_ChatMessage:
+	{
+		std::string chatmessage;
+		packet >> chatmessage;
+		std::cout << "Chat Message: " << chatmessage << std::endl;
+		break;
+	}
+
+	case packetType::PT_IntegerArray:
+	{
+		uint32_t arraySize = 0;
+		packet >> arraySize;
+		std::cout << "Array Size: " << arraySize << std::endl;
+		for (uint32_t i = 0; i < arraySize; i++)
+		{
+			uint32_t element = 0;
+			packet >> element;
+			std::cout << "Element[" << i << "] - " << element << std::endl;
+		}
+		break;
+	}
+	case packetType::PT_Save:
+	{
+		/*std::string request;
+		packet >> request;
+
+		newest_file = "C:/Users/kamil/Downloads/" + request;
+
+		std::ofstream newfile("C:/Users/kamil/Downloads/" + request, std::ios::binary);
+
+		file.open(newest_file, std::ios::out | std::ios::binary);
+
+		break;
+	}
+
+	case packetType::PT_file:
+	{
+		packet >> buf;
+
+		std::cout << buf << std::endl;
+
+		write_to_file(buf);
+
+		buf.clear();
+
+		break;*/
+	}
+
+	default:
+		std::cout << "Unknown Packet type!" << packet.GetPacketType() << std::endl;
+		return false;
+	}
+	return true;
 }

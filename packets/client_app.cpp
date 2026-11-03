@@ -8,6 +8,7 @@ using namespace kamNet;
 using namespace std;
 
 const char* ip = "127.0.0.1";
+const unsigned short port = 4800;
 
 const char* filePath = "C:/Users/kamil/Downloads/image.jpg";
 
@@ -67,7 +68,7 @@ KResult sendFile(Socket& socket, const char* filepath)
 int main() {
 	Client client;
 
-	if(client.connect(IPEndpoint(ip, 4800)))
+	if(client.connect(IPEndpoint(ip, port)))
 	{
 		while (client.IsConnected())
 		{
