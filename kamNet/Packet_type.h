@@ -6,10 +6,9 @@ namespace kamNet
 	enum packetType : uint16_t
 	{
 		PT_Invalid,
-		PT_ChatMessage,
-		PT_IntegerArray,
+		PT_info,
 		PT_file,
-		PT_Request,
-		PT_Save
+		PT_upload,
+		PT_download
 	};
 }

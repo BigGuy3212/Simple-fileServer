@@ -29,7 +29,8 @@ bool Client::connect(IPEndpoint ip)
 					masterFD.events = POLLRDNORM;
 					masterFD.revents = 0;
 
-					std::shared_ptr<Packet> helloPacket = std::make_shared<Packet>(packetType::PT_ChatMessage);
+
+					std::shared_ptr<Packet> helloPacket = std::make_shared<Packet>(packetType::PT_info);
 					*helloPacket << std::string("Hello from client");
 
 					connection.pm_outgoing.Append(helloPacket);
@@ -228,55 +229,40 @@ bool Client::processPacket(std::shared_ptr<Packet> packet)
 {
 	switch (packet->GetPacketType())
 	{
-	case packetType::PT_ChatMessage:
+	case packetType::PT_info:
 	{
 		std::string chatmessage;
 		*packet >> chatmessage;
-		std::cout << "Chat Message: " << chatmessage << std::endl;
+		std::cout << "INFO: " << chatmessage << std::endl;
 		break;
 	}
-
-	case packetType::PT_IntegerArray:
-	{
-		uint32_t arraySize = 0;
-		*packet >> arraySize;
-		std::cout << "Array Size: " << arraySize << std::endl;
-		for (uint32_t i = 0; i < arraySize; i++)
-		{
-			uint32_t element = 0;
-			*packet >> element;
-			std::cout << "Element[" << i << "] - " << element << std::endl;
-		}
-		break;
-	}
-	/*case packetType::PT_Save:
+	case packetType::PT_upload:
 	{
 		std::string request;
-		packet >> request;
+		*packet >> request;
 
-		newest_file = "C:/Users/kamil/Downloads/" + request;
+		latestFile = "C:/Users/kamil/Downloads/" + request;
 
-		std::ofstream newfile("C:/Users/kamil/Downloads/" + request, std::ios::binary);
-
-		file.open(newest_file, std::ios::out | std::ios::binary);
+		file = std::ofstream("C:/Users/kamil/Downloads/" + request, std::ios::binary);
 
 		break;
 	}
 
 	case packetType::PT_file:
 	{
-		packet >> buf;
+		*packet >> buf;
 
 		std::cout << buf << std::endl;
 
-		write_to_file(buf);
+		writeToFile(buf);
 
 		buf.clear();
 
 		break;
-	}*/
+	}
 
 	default:
+		std::cout << "Unknown packet type - " << packet->GetPacketType() << std::endl;
 		return false;
 	}
 	return true;
@@ -287,4 +273,65 @@ void Client::CloseConnection(std::string reason)
 	masterFD.fd = 0;
 	isConnected = false;
 	connection.Close();
+}
+
+void Client::sendFile(std::string path)
+{
+	std::cout << "sending file\n";
+
+	std::shared_ptr<Packet> request = std::make_shared<Packet>(packetType::PT_upload);
+	*request << std::string("image2.jpg");
+
+	connection.pm_outgoing.Append(request);
+
+	int bytesRead = 0;
+
+	std::ifstream file(path, std::ios::ate | std::ios::binary);
+
+	if (!file.is_open())
+	{
+		std::cout << "Could not open file!" << std::endl;
+	}
+
+	std::streamsize size = file.tellg();
+
+	std::vector<std::byte> bytes(size);
+
+	file.seekg(0, std::ios::beg);
+
+	file.read(reinterpret_cast<char*>(bytes.data()), size);
+
+	const char* buf = reinterpret_cast<const char*>(bytes.data());
+	unsigned char packet_buf[40];
+	std::string str_buf;
+
+	for (int i = 0; size >= bytesRead; i++)
+	{
+		std::shared_ptr<Packet> packet = std::make_shared<Packet>(packetType::PT_file);
+
+		for (int j = 0; j < 40; j++)
+		{
+			packet_buf[j] = buf[bytesRead];
+
+			bytesRead++;
+		}
+
+		str_buf.assign(reinterpret_cast<char*>(packet_buf), sizeof(packet_buf));
+		*packet << str_buf;
+
+		connection.pm_outgoing.Append(packet);
+	}
+
+	file.close();
+
+	str_buf.clear();
+	bytes.clear();
+}
+
+void Client::writeToFile(std::string& data)
+{
+	if (file.is_open())
+	{
+		file.write(data.data(), data.size());
+	}
 }
