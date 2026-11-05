@@ -1,8 +1,6 @@
-#include<kamNet/kamNet.h>
 #include"Client.h"
 #include<iostream>
-#include<fstream>
-#include<cstddef>
+#include<thread>
 
 using namespace kamNet;
 
@@ -11,14 +9,36 @@ const unsigned short port = 4800;
 
 const char* filePath = "C:/Users/kamil/Downloads/image.jpg";
 
-int main() {
-	Client client;
 
+int main() {
+	
+	Client client;
+	
 	if(client.connect(IPEndpoint(ip, port)))
 	{
-		while (client.IsConnected())
+		std::thread update([&client]() {
+			while (client.IsConnected())
+			{
+				client.Frame();
+			}
+		});
+
+		while (true)
 		{
-			client.Frame();
+			Sleep(500);
+			std::string req;
+
+			std::cout << "action: ";
+			std::getline(std::cin, req);
+
+			if (req == "send")
+			{
+				client.sendFile(filePath);
+			}
+			else if (req == "download")
+			{
+				client.downloadFile("urgalurg");
+			}
 		}
 	}
 

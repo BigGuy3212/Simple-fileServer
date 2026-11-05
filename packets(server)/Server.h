@@ -16,6 +16,7 @@ private:
 	void CloseConnection(int connectionIndex, std::string reason);
 	bool ProcessPacket(std::shared_ptr<Packet> packet);
 	void writeToFile(std::string& data);
+	int connectionIndex = 0;
 	Socket listeningSocket;
 	std::vector<TCPconnection> connections;
 	std::vector<WSAPOLLFD> masterFD;

@@ -3,6 +3,9 @@
 
 using namespace kamNet;
 
+int packetsRecived = 0;
+int packetsSent = 0;
+
 bool Client::connect(IPEndpoint ip)
 {
 	isConnected = false;
@@ -31,7 +34,7 @@ bool Client::connect(IPEndpoint ip)
 
 
 					std::shared_ptr<Packet> helloPacket = std::make_shared<Packet>(packetType::PT_info);
-					*helloPacket << std::string("Hello from client");
+					*helloPacket << std::string("Hello from client\n");
 
 					connection.pm_outgoing.Append(helloPacket);
 
@@ -188,7 +191,7 @@ bool Client::Frame()
 				else
 				{
 					char* pBuffer = &pm.Retrive()->buf[0];
-
+					
 					int bytesSent = send(useFD.fd, (char*)(pBuffer)+pm.currentPacketExtractionOffset, pm.currentPacketSize - pm.currentPacketExtractionOffset, 0);
 					if (bytesSent > 0)
 					{
@@ -252,12 +255,21 @@ bool Client::processPacket(std::shared_ptr<Packet> packet)
 	{
 		*packet >> buf;
 
-		std::cout << buf << std::endl;
-
 		writeToFile(buf);
 
-		buf.clear();
+		packetsRecived++;
 
+		break;
+	}
+
+	case packetType::PT_fileEnd:
+	{
+		file.close();
+
+		std::cout << "Recived " << packetsRecived << " packets" << std::endl;
+
+		packetsRecived = 0;
+		
 		break;
 	}
 
@@ -277,7 +289,7 @@ void Client::CloseConnection(std::string reason)
 
 void Client::sendFile(std::string path)
 {
-	std::cout << "sending file\n";
+	std::cout << "sending file...\n";
 
 	std::shared_ptr<Packet> request = std::make_shared<Packet>(packetType::PT_upload);
 	*request << std::string("image2.jpg");
@@ -305,7 +317,7 @@ void Client::sendFile(std::string path)
 	unsigned char packet_buf[40];
 	std::string str_buf;
 
-	for (int i = 0; size >= bytesRead; i++)
+	for(int i = 0;size >= bytesRead; i++)
 	{
 		std::shared_ptr<Packet> packet = std::make_shared<Packet>(packetType::PT_file);
 
@@ -316,16 +328,29 @@ void Client::sendFile(std::string path)
 			bytesRead++;
 		}
 
-		str_buf.assign(reinterpret_cast<char*>(packet_buf), sizeof(packet_buf));
+		str_buf.assign(reinterpret_cast<char*>(packet_buf), sizeof(str_buf));
 		*packet << str_buf;
 
+		Sleep(1);
+		
 		connection.pm_outgoing.Append(packet);
+
+		packetsSent++;
 	}
 
 	file.close();
 
 	str_buf.clear();
 	bytes.clear();
+
+	std::shared_ptr<Packet> endFile = std::make_shared<Packet>(packetType::PT_fileEnd);
+	*endFile << std::string("end of file");
+
+	connection.pm_outgoing.Append(endFile);
+
+	std::cout << "Sent " << packetsSent << " packets" << std::endl;
+
+	packetsSent = 0;
 }
 
 void Client::writeToFile(std::string& data)
@@ -334,4 +359,12 @@ void Client::writeToFile(std::string& data)
 	{
 		file.write(data.data(), data.size());
 	}
+}
+
+void Client::downloadFile(std::string path)
+{
+	std::shared_ptr<Packet> download = std::make_shared<Packet>(packetType::PT_download);
+	*download << std::string(path);
+
+	connection.pm_outgoing.Append(download);
 }

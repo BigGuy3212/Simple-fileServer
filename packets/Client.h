@@ -15,6 +15,7 @@ public:
 	bool Frame();
 	bool processPacket(std::shared_ptr<Packet> packet);
 	void sendFile(std::string path);
+	void downloadFile(std::string path);
 private:
 	void writeToFile(std::string& data);
 	bool isConnected = false;
