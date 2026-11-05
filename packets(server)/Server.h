@@ -9,7 +9,7 @@ using namespace kamNet;
 class Server
 {
 public:
-	bool init(IPEndpoint ip);
+	bool init(IPEndpoint ip, ServerInfo& info);
 	void Frame();
 	void sendFile(std::string path, TCPconnection& connection);
 private:
@@ -24,4 +24,5 @@ private:
 	std::string latestFile;
 	std::string buf;
 	std::ofstream file;
+	ServerInfo Serverinfo;
 };

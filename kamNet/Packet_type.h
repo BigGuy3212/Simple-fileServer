@@ -10,6 +10,7 @@ namespace kamNet
 		PT_file,
 		PT_upload,
 		PT_download,
-		PT_fileEnd
+		PT_fileEnd,
+		PT_serverInfo
 	};
 }

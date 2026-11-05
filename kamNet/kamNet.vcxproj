@@ -141,6 +141,7 @@
   <ItemGroup>
     <ClInclude Include="constants.h" />
     <ClInclude Include="Helpers.h" />
+    <ClInclude Include="Info.h" />
     <ClInclude Include="IPEndpoint.h" />
     <ClInclude Include="IPVersion.h" />
     <ClInclude Include="KResult.h" />

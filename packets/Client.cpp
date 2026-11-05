@@ -1,5 +1,7 @@
 #include"Client.h"
 #include<iostream>
+#include<sstream>
+#include<string>
 
 using namespace kamNet;
 
@@ -270,6 +272,31 @@ bool Client::processPacket(std::shared_ptr<Packet> packet)
 
 		packetsRecived = 0;
 		
+		break;
+	}
+
+	case packetType::PT_serverInfo:
+	{
+		std::string info;
+
+		*packet >> info;
+
+		std::stringstream stringStream(info);
+
+		std::string temp;
+
+		std::vector<std::string> parsedInfo;
+
+		while (std::getline(stringStream, temp, ','))
+		{
+			parsedInfo.push_back(temp);
+		}
+
+		std::cout << "Server Info: \n";
+		std::cout << "IP: " << parsedInfo[0] << std::endl;
+		std::cout << "Port: " << parsedInfo[1] << std::endl;
+		std::cout << "Server name: " << parsedInfo[2] << std::endl;
+
 		break;
 	}
 

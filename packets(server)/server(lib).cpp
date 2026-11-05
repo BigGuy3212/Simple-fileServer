@@ -1,15 +1,18 @@
 #include"server.h"
 #include<iostream>
+#include<kamNet/kamNet.h>
 
 using namespace kamNet;
 
 int packetsRecived = 0;
 int packetsSent = 0;
 
-bool Server::init(IPEndpoint ip)
+bool Server::init(IPEndpoint ip, ServerInfo& info)
 {
 	masterFD.clear();
 	connections.clear();
+
+	Serverinfo = info;
 
 	if (Network::init())
 	{
@@ -84,7 +87,11 @@ void Server::Frame()
 				std::shared_ptr<Packet> stringPacket = std::make_shared<Packet>(packetType::PT_info);
 				*stringPacket << std::string("Welcome to the server\n");
 
+				std::shared_ptr<Packet> serverInfo = std::make_shared<Packet>(packetType::PT_serverInfo);
+				*serverInfo << std::string(Serverinfo.ip + "," + std::to_string(Serverinfo.port) + "," + Serverinfo.name);
+
 				newConnection.pm_outgoing.Append(stringPacket);
+				newConnection.pm_outgoing.Append(serverInfo);
 			}
 			else
 			{
