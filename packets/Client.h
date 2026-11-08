@@ -4,6 +4,7 @@
 #include<vector>
 #include<fstream>
 #include<iostream>
+#include<SDL3/SDL.h>
 
 using namespace kamNet;
 
@@ -16,9 +17,14 @@ public:
 	bool processPacket(std::shared_ptr<Packet> packet);
 	void sendFile(std::string path);
 	void downloadFile(std::string path);
+	bool WindowInit();
+	void WindowFrame();
+	bool IsRunning();
+	void draw();
 private:
 	void writeToFile(std::string& data);
 	bool isConnected = false;
+	bool runing = false;
 	Socket socket;
 	WSAPOLLFD masterFD;
 	WSAPOLLFD useFD;
@@ -28,4 +34,7 @@ private:
 protected:
 	TCPconnection connection;
 	void CloseConnection(std::string reason);
+	SDL_Window* window;
+	SDL_Surface* surface;
+	const SDL_PixelFormatDetails* format;
 };
