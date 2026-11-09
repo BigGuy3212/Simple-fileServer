@@ -400,46 +400,26 @@ bool Client::WindowInit()
 {
 	runing = true;
 
-	window = SDL_CreateWindow("Simple-fileServer Client", 1000, 800, 0);
-	surface = SDL_GetWindowSurface(window);
-	format = SDL_GetPixelFormatDetails(surface->format);
+	Rml::SetRenderInterface(&render);
+	Rml::SetSystemInterface(&system);
+
+	if (!Rml::Initialise())
+	{
+		return false;
+	}
+
+	context = Rml::CreateContext("s1mple", Rml::Vector2i(800, 800));
 
 	return true;
 }
 
 void Client::WindowFrame()
 {
-	SDL_UpdateWindowSurface(window);
-
-	SDL_Event event;
-	while (SDL_PollEvent(&event))
-	{
-		if (event.type == SDL_EVENT_QUIT)
-		{	
-			runing = false;
-			isConnected = false;
-		}
-
-		const bool* keys = SDL_GetKeyboardState(NULL);
-
-		if (keys[SDL_SCANCODE_D])
-		{
-			draw();
-		}
-	}
+	context->Update();
+	context->Render();
 }
 
 bool Client::IsRunning()
 {
 	return runing;
-}
-
-void Client::draw()
-{
-	SDL_Rect rect = { 0,0,100,100 };
-	Uint32 color;
-
-	color = SDL_MapRGB(format, NULL, 0xFF, 0xF3, 0x34);
-
-	SDL_FillSurfaceRect(surface, &rect, color);
 }

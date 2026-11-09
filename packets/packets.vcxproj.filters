@@ -26,5 +26,14 @@
     <ClInclude Include="Client.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="RmlUi_Renderer_GL3.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="RmlUi_Platform_SDL.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="RmlUi_Backend.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -1,7 +1,7 @@
 #include"Client.h"
+#include<kamNet/kamNet.h>
 #include<iostream>
 #include<thread>
-#include<SDL3/SDL.h>
 
 using namespace kamNet;
 
