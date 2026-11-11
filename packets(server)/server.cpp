@@ -33,17 +33,15 @@ std::string GetExternalIpAddress()
 	{
 		if (bytesRead > 0)
 		{
-			buf[bytesRead] = (char)"\0";
-
-			const char* pBuf = buf;
+			buf[bytesRead] = '\0';
 
 			Address.resize(16);
 
 			for (int i = 0; i < 16; i++)
 			{
-				if (pBuf[i] != (char)"\0")
+				if (buf[i] != '\0')
 				{
-					Address[i] = pBuf[i];
+					Address[i] = buf[i];
 				}
 				else
 				{
@@ -68,7 +66,7 @@ int main() {
 	
 	Server server;
 
-	ServerInfo info = {};
+	ServerInfo info{};
 
 	info.ip = GetExternalIpAddress();
 	info.port = port;

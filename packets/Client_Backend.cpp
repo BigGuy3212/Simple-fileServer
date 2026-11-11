@@ -8,6 +8,8 @@ using namespace kamNet;
 int packetsRecived = 0;
 int packetsSent = 0;
 
+RenderInterface_SDL_GPU* pRenderer;
+
 bool Client::connect(IPEndpoint ip)
 {
 	isConnected = false;
@@ -400,8 +402,15 @@ bool Client::WindowInit()
 {
 	runing = true;
 
-	Rml::SetRenderInterface(&render);
-	Rml::SetSystemInterface(&system);
+	//Rml::SetRenderInterface(pRenderer);
+	//Rml::SetSystemInterface(&system);
+
+	Shell::Initialize();
+
+	Backend::Initialize("Donk", 800, 800, false);
+
+	Rml::SetSystemInterface(Backend::GetSystemInterface());
+	Rml::SetRenderInterface(Backend::GetRenderInterface());
 
 	if (!Rml::Initialise())
 	{
@@ -410,16 +419,45 @@ bool Client::WindowInit()
 
 	context = Rml::CreateContext("s1mple", Rml::Vector2i(800, 800));
 
+	Rml::Debugger::Initialise(context);
+
+	Rml::LoadFontFace("UI/Oswald-Regular.ttf");
+
+	Rml::ElementDocument* document = context->LoadDocument("UI/document.rml");
+	if (!document)
+	{
+		Rml::Shutdown();
+		return false;
+	}
+
+	document->Show();
+
 	return true;
 }
 
 void Client::WindowFrame()
 {
+	runing = Backend::ProcessEvents(context, &Shell::ProcessKeyDownShortcuts, true);
+
 	context->Update();
+
+	Backend::BeginFrame();
 	context->Render();
+	Backend::PresentFrame();
+	
 }
 
 bool Client::IsRunning()
 {
 	return runing;
+}
+
+Client::Client(SDL_GPUDevice* GPU, SDL_Window* window)
+{
+	this->GPU = GPU;
+	this->window = window; 
+
+	RenderInterface_SDL_GPU render = RenderInterface_SDL_GPU(GPU, window);
+
+	pRenderer = &render;
 }

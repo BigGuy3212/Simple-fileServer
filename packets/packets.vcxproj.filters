@@ -21,18 +21,42 @@
     <ClCompile Include="Client_Backend.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="RmlUi_Renderer_SDL_GPU.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="RmlUi_Platform_SDL.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="RmlUi_Backend_SDL_GPU.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Client.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="RmlUi_Renderer_GL3.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="RmlUi_Platform_SDL.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="RmlUi_Backend.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="RmlUi_Renderer_SDL_GPU.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ShadersCompiledSPV.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Shell.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ShellFileInterface.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="RendererExtensions.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PlatformExtensions.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

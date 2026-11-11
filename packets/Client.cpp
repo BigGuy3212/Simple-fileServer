@@ -2,6 +2,7 @@
 #include<kamNet/kamNet.h>
 #include<iostream>
 #include<thread>
+#include<SDL3/SDL.h>
 
 using namespace kamNet;
 
@@ -12,9 +13,14 @@ const char* filePath = "C:/Users/kamil/Downloads/image.jpg";
 
 std::atomic<bool> shoudStop(false);
 
+SDL_Window* window = SDL_CreateWindow("s1mple", 800, 800, 0);
+SDL_GPUDevice* GPU = SDL_CreateGPUDevice(SDL_GPU_SHADERFORMAT_SPIRV | SDL_GPU_SHADERFORMAT_DXIL, true, NULL);
+
+bool claim = SDL_ClaimWindowForGPUDevice(GPU, window);
+
 int main() {
-	
-	Client client;
+
+	Client client(GPU, window);
 	
 	if(client.WindowInit())
 	{
@@ -37,6 +43,8 @@ int main() {
 		while (client.IsRunning())
 		{
 			client.WindowFrame();
+
+
 		}
 
 		shoudStop.store(true);

@@ -23,7 +23,7 @@
     <Keyword>Win32Proj</Keyword>
     <ProjectGuid>{4852efde-9129-4084-9483-b4bf99f81d1e}</ProjectGuid>
     <RootNamespace>packets</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.28000.0</WindowsTargetPlatformVersion>
     <ProjectName>client</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -74,18 +74,22 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)</IncludePath>
     <LibraryPath>$(OutDir);$(SolutionDir);$(WindowsSDK_LibraryPath_x64)$(VC_LibraryPath_x64);$(VC_LibraryPath_x64)</LibraryPath>
+    <OutDir>$(OutDir)</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)</IncludePath>
     <LibraryPath>$(OutDir);$(SolutionDir);$(WindowsSDK_LibraryPath_x64)$(VC_LibraryPath_x64);$(VC_LibraryPath_x64)</LibraryPath>
+    <OutDir>$(OutDir)</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)</IncludePath>
     <LibraryPath>$(OutDir);$(SolutionDir);$(WindowsSDK_LibraryPath_x64)$(VC_LibraryPath_x64);$(VC_LibraryPath_x64)</LibraryPath>
+    <OutDir>$(OutDir)</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)</IncludePath>
     <LibraryPath>$(OutDir);$(SolutionDir);$(WindowsSDK_LibraryPath_x64)$(VC_LibraryPath_x64);$(VC_LibraryPath_x64)</LibraryPath>
+    <OutDir>$(OutDir)</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -94,13 +98,13 @@
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>;$(SolutionDir)lib/include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>;$(SolutionDir)lib/include; $(SolutionDir)lib\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies)ws2_32.lib;kamNet.lib;SDL3.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>;$(SolutionDir)lib</AdditionalLibraryDirectories>
+      <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies);ws2_32.lib;kamNet.lib;SDL3_image.lib;SDL3.lib;rmlui.lib;rmlui_debugger.lib;rmlui_shell.lib;shell32.lib;shlwapi.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)lib</AdditionalLibraryDirectories>
     </Link>
     <Manifest>
       <EnableSegmentHeap>true</EnableSegmentHeap>
@@ -115,13 +119,13 @@
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>;$(SolutionDir)lib/include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>;$(SolutionDir)lib/include; $(SolutionDir)lib\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies)ws2_32.lib;kamNet.lib;SDL3.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>;$(SolutionDir)lib</AdditionalLibraryDirectories>
+      <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies);ws2_32.lib;kamNet.lib;SDL3_image.lib;SDL3.lib;rmlui.lib;rmlui_debugger.lib;rmlui_shell.lib;shell32.lib;shlwapi.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)lib</AdditionalLibraryDirectories>
     </Link>
     <Manifest>
       <EnableSegmentHeap>true</EnableSegmentHeap>
@@ -134,13 +138,13 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)lib\win\include;$(SolutionDir)lib/include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)lib\win\include;$(SolutionDir)lib/include; $(SolutionDir)lib\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)lib\win\lib;$(SolutionDir)lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies)ws2_32.lib;kamNet.lib;SDL3.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)lib</AdditionalLibraryDirectories>
+      <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies);ws2_32.lib;kamNet.lib;SDL3_image.lib;SDL3.lib;rmlui.lib;rmlui_debugger.lib;rmlui_shell.lib;shell32.lib;shlwapi.lib</AdditionalDependencies>
     </Link>
     <Manifest>
       <EnableSegmentHeap>true</EnableSegmentHeap>
@@ -155,13 +159,13 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)lib\win\include;$(SolutionDir)lib/include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)lib\win\include;$(SolutionDir)lib/include; $(SolutionDir)lib\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)lib\win\lib;$(SolutionDir)lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies)ws2_32.lib;kamNet.lib;SDL3.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)lib</AdditionalLibraryDirectories>
+      <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies);ws2_32.lib;kamNet.lib;SDL3_image.lib;SDL3.lib;rmlui.lib;rmlui_debugger.lib;rmlui_shell.lib;shell32.lib;shlwapi.lib</AdditionalDependencies>
     </Link>
     <Manifest>
       <EnableSegmentHeap>true</EnableSegmentHeap>
@@ -170,12 +174,20 @@
   <ItemGroup>
     <ClCompile Include="Client.cpp" />
     <ClCompile Include="Client_Backend.cpp" />
+    <ClCompile Include="RmlUi_Backend_SDL_GPU.cpp" />
+    <ClCompile Include="RmlUi_Platform_SDL.cpp" />
+    <ClCompile Include="RmlUi_Renderer_SDL_GPU.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Client.h" />
+    <ClInclude Include="PlatformExtensions.h" />
+    <ClInclude Include="RendererExtensions.h" />
     <ClInclude Include="RmlUi_Backend.h" />
     <ClInclude Include="RmlUi_Platform_SDL.h" />
-    <ClInclude Include="RmlUi_Renderer_GL3.h" />
+    <ClInclude Include="RmlUi_Renderer_SDL_GPU.h" />
+    <ClInclude Include="ShadersCompiledSPV.h" />
+    <ClInclude Include="Shell.h" />
+    <ClInclude Include="ShellFileInterface.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

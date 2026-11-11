@@ -1,0 +1,11 @@
+body {
+    background-color: #FEEF32;
+    width: 100%;
+    font-family: Oswald-Regular;
+    height: 100%;
+}
+
+@font-face {
+    font-family: Oswald-Regular;
+    src: Oswald-Regular.ttf;
+}
