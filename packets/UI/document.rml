@@ -5,5 +5,19 @@
 </head>
 <body>
     <h1>WAS</h1>
+
+    <button id="sendbutton" onclickcapture="client.print()">Send</button>
+
+    <div id="filepath">
+        <button id="openFileDialog">...</button>
+        <p id="path"></p>
+    </div>
+
+    <div id="serverinfo">
+        <p id="servername" class="serverinfotext">Not connected</p>
+        <p id="ip" class="serverinfotext">External IP: -</p>
+        <p id="port" class="serverinfotext">Port: -</p>
+
+    </div>
 </body>
 </rml>

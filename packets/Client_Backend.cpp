@@ -8,8 +8,6 @@ using namespace kamNet;
 int packetsRecived = 0;
 int packetsSent = 0;
 
-RenderInterface_SDL_GPU* pRenderer;
-
 bool Client::connect(IPEndpoint ip)
 {
 	isConnected = false;
@@ -299,6 +297,10 @@ bool Client::processPacket(std::shared_ptr<Packet> packet)
 		std::cout << "Port: " << parsedInfo[1] << std::endl;
 		std::cout << "Server name: " << parsedInfo[2] << std::endl;
 
+		document->GetElementById("servername")->SetInnerRML(parsedInfo[2]);
+		document->GetElementById("ip")->SetInnerRML(parsedInfo[0]);
+		document->GetElementById("port")->SetInnerRML(parsedInfo[1]);
+		
 		break;
 	}
 
@@ -402,12 +404,9 @@ bool Client::WindowInit()
 {
 	runing = true;
 
-	//Rml::SetRenderInterface(pRenderer);
-	//Rml::SetSystemInterface(&system);
-
 	Shell::Initialize();
 
-	Backend::Initialize("Donk", 800, 800, false);
+	Backend::Initialize("Donk", 800, 800, true);
 
 	Rml::SetSystemInterface(Backend::GetSystemInterface());
 	Rml::SetRenderInterface(Backend::GetRenderInterface());
@@ -423,7 +422,7 @@ bool Client::WindowInit()
 
 	Rml::LoadFontFace("UI/Oswald-Regular.ttf");
 
-	Rml::ElementDocument* document = context->LoadDocument("UI/document.rml");
+	document = context->LoadDocument("UI/document.rml");
 	if (!document)
 	{
 		Rml::Shutdown();
@@ -431,6 +430,8 @@ bool Client::WindowInit()
 	}
 
 	document->Show();
+	
+	this->LoadUI();
 
 	return true;
 }
@@ -452,12 +453,87 @@ bool Client::IsRunning()
 	return runing;
 }
 
-Client::Client(SDL_GPUDevice* GPU, SDL_Window* window)
+void Client::shutdown()
 {
-	this->GPU = GPU;
-	this->window = window; 
+	Rml::Shutdown();
+	Backend::Shutdown();
+}
 
-	RenderInterface_SDL_GPU render = RenderInterface_SDL_GPU(GPU, window);
+EventListener::EventListener(std::function<void()> func)
+{
+	function = func;
+}
 
-	pRenderer = &render;
+void Client::LoadUI()
+{
+	//Send button
+	Rml::Element* button = document->GetElementById("sendbutton");
+
+	EventListener* listener = new EventListener([this]() {
+		sendFile(filepath);
+		});
+
+	button->AddEventListener(Rml::EventId::Click, listener);
+
+	//Open file explorer
+	Rml::Element* openFile = document->GetElementById("openFileDialog");
+
+	EventListener* openFilelistener = new EventListener([this]() {
+		std::wstring wpath = this->OpenFileExplorer();
+		filepath = std::string(wpath.begin(), wpath.end());
+
+		Rml::Element* path = document->GetElementById("path");
+		path->SetInnerRML(filepath);
+		});
+
+	openFile->AddEventListener(Rml::EventId::Click, openFilelistener);
+}
+
+std::wstring Client::OpenFileExplorer()
+{
+	std::wstring path = L"";
+
+	HRESULT result = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
+
+	if (SUCCEEDED(result))
+	{
+		IFileOpenDialog* pFileOpen = nullptr;
+
+		result = CoCreateInstance(CLSID_FileOpenDialog, NULL, CLSCTX_ALL, IID_IFileOpenDialog, reinterpret_cast<void**>(&pFileOpen));
+
+		if (SUCCEEDED(result))
+		{
+			COMDLG_FILTERSPEC fileTypes[] = { { L"All files", L"*.*" } };
+
+			pFileOpen->SetFileTypes(ARRAYSIZE(fileTypes), fileTypes);
+
+			result = pFileOpen->Show(NULL);
+
+			if (SUCCEEDED(result))
+			{
+				IShellItem* pItem = nullptr;
+
+				result = pFileOpen->GetResult(&pItem);
+				if (SUCCEEDED(result))
+				{
+					PWSTR pszFilePath = nullptr;
+
+					result = pItem->GetDisplayName(SIGDN_FILESYSPATH, &pszFilePath);
+					if (SUCCEEDED(result))
+					{
+						path = pszFilePath;
+						CoTaskMemFree(pszFilePath);
+					}
+
+					pItem->Release();
+				}
+			}
+
+			pFileOpen->Release();
+		}
+
+		CoUninitialize();
+	}
+
+	return path;
 }

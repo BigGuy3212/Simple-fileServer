@@ -14,6 +14,9 @@
 #include<RmlUi/Debugger.h>
 #include<RmlUi/Core.h>
 #include"Shell.h"
+#include<functional>
+#include<windows.h>
+#include<shobjidl.h>
 
 #ifndef RMLUI_BACKEND_SDL_GPU_DEBUG
 #define RMLUI_BACKEND_SDL_GPU_DEBUG false
@@ -24,8 +27,6 @@ using namespace kamNet;
 class Client
 {
 public:
-	Client(SDL_GPUDevice* GPU, SDL_Window* Window);
-
 	bool connect(IPEndpoint ip);
 	bool IsConnected();
 	bool Frame();
@@ -35,8 +36,10 @@ public:
 	bool WindowInit();
 	void WindowFrame();
 	bool IsRunning();
+	void shutdown();
 private:
 	void writeToFile(std::string& data);
+	void LoadUI();
 	bool isConnected = false;
 	bool runing = false;
 	Socket socket;
@@ -45,11 +48,28 @@ private:
 	std::string latestFile;
 	std::string buf;
 	std::ofstream file;
-	SDL_GPUDevice* GPU = nullptr;
-	SDL_Window* window = nullptr;
 protected:
 	TCPconnection connection;
 	void CloseConnection(std::string reason);
-	Rml::SystemInterface system;
-	Rml::Context* context;
+	Rml::Context* context = nullptr;
+	Rml::UniquePtr<TextInputMethodEditor_SDL> textInput = nullptr;
+	Rml::ElementDocument* document;
+	std::string filepath;
+	std::wstring OpenFileExplorer();
+};
+
+class EventListener : public Rml::EventListener
+{
+public:
+	EventListener(std::function<void()> func);
+
+	void ProcessEvent(Rml::Event& event) override
+	{
+		if (event.GetId() == Rml::EventId::Click)
+		{
+			function();
+		}
+	}
+
+	std::function<void()> function;
 };

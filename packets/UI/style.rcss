@@ -1,5 +1,5 @@
 body {
-    background-color: #FEEF32;
+    background-color: #FFFFFF;
     width: 100%;
     font-family: Oswald-Regular;
     height: 100%;
@@ -8,4 +8,39 @@ body {
 @font-face {
     font-family: Oswald-Regular;
     src: Oswald-Regular.ttf;
+}
+
+h1 {
+    color: #000000;
+}
+
+button {
+    color: #000000;
+    background-color: #b45757;
+    border: 2px black;
+    padding: 5px;
+    margin: 10px;
+    width: 70px;
+}
+
+#path {
+    font-size: 1.5em;
+    color: #000000;
+}
+
+.serverinfotext {
+    font-size: 1.3em;
+    color: black;
+}
+
+#servername {
+    font-size: 1.5em;
+}
+
+#serverinfo {
+    display: flex;
+    border: 2px black;
+    padding: 10px;
+    flex-direction: column;
+    max-width: 100px;
 }
