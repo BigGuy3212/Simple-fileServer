@@ -8,6 +8,9 @@ using namespace kamNet;
 int packetsRecived = 0;
 int packetsSent = 0;
 
+#pragma region Network
+
+#pragma region NetworkInit
 bool Client::connect(IPEndpoint ip)
 {
 	isConnected = false;
@@ -57,11 +60,14 @@ bool Client::connect(IPEndpoint ip)
 	}
 	return false;
 }
+#pragma endregion NetworkInit
 
 bool Client::IsConnected()
 {
 	return isConnected;
 }
+
+#pragma region NetworkFrame
 
 bool Client::Frame()
 {
@@ -230,6 +236,10 @@ bool Client::Frame()
 	}
 }
 
+#pragma endregion NetworkFrame
+
+#pragma region PacketHandling
+
 bool Client::processPacket(std::shared_ptr<Packet> packet)
 {
 	switch (packet->GetPacketType())
@@ -292,11 +302,6 @@ bool Client::processPacket(std::shared_ptr<Packet> packet)
 			parsedInfo.push_back(temp);
 		}
 
-		std::cout << "Server Info: \n";
-		std::cout << "IP: " << parsedInfo[0] << std::endl;
-		std::cout << "Port: " << parsedInfo[1] << std::endl;
-		std::cout << "Server name: " << parsedInfo[2] << std::endl;
-
 		document->GetElementById("servername")->SetInnerRML(parsedInfo[2]);
 		document->GetElementById("ip")->SetInnerRML(parsedInfo[0]);
 		document->GetElementById("port")->SetInnerRML(parsedInfo[1]);
@@ -311,6 +316,8 @@ bool Client::processPacket(std::shared_ptr<Packet> packet)
 	return true;
 }
 
+#pragma endregion PacketHandling
+
 void Client::CloseConnection(std::string reason)
 {
 	masterFD.fd = 0;
@@ -318,6 +325,7 @@ void Client::CloseConnection(std::string reason)
 	connection.Close();
 }
 
+#pragma region FileHandling
 void Client::sendFile(std::string path)
 {
 	std::cout << "sending file...\n";
@@ -399,6 +407,9 @@ void Client::downloadFile(std::string path)
 
 	connection.pm_outgoing.Append(download);
 }
+#pragma endregion FileHandling
+
+#pragma endregion Network
 
 bool Client::WindowInit()
 {
@@ -416,7 +427,7 @@ bool Client::WindowInit()
 		return false;
 	}
 
-	context = Rml::CreateContext("s1mple", Rml::Vector2i(800, 800));
+	context = Rml::CreateContext("Donk", Rml::Vector2i(800, 800));
 
 	Rml::Debugger::Initialise(context);
 
@@ -487,6 +498,19 @@ void Client::LoadUI()
 		});
 
 	openFile->AddEventListener(Rml::EventId::Click, openFilelistener);
+
+	//Connect button
+	Rml::Element* connectButton = document->GetElementById("connect");
+
+	EventListener* connectButtonListener = new EventListener([this]() {
+		std::cout << ip.ip << std::endl;
+		});
+
+	connectButton->AddEventListener(Rml::EventId::Click, connectButtonListener);
+
+	Rml::DataModelConstructor contstructor = context->CreateDataModel("IP");
+
+	contstructor.Bind("ip", &ip.ip);
 }
 
 std::wstring Client::OpenFileExplorer()

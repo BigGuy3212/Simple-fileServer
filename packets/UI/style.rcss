@@ -20,7 +20,6 @@ button {
     border: 2px black;
     padding: 5px;
     margin: 10px;
-    width: 70px;
 }
 
 #path {
@@ -43,4 +42,19 @@ button {
     padding: 10px;
     flex-direction: column;
     max-width: 100px;
+    margin: 10px;
+}
+
+input {
+    background-color: #a8a5a5;
+    border: 2px black;
+    border-radius: 5px;
+    color: #000000;
+}
+
+#connection {
+    border: 2px black;
+    display: flex;
+    flex-direction: column;
+    max-width: 200px;
 }

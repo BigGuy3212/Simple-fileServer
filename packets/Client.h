@@ -52,10 +52,12 @@ protected:
 	TCPconnection connection;
 	void CloseConnection(std::string reason);
 	Rml::Context* context = nullptr;
-	Rml::UniquePtr<TextInputMethodEditor_SDL> textInput = nullptr;
 	Rml::ElementDocument* document;
 	std::string filepath;
 	std::wstring OpenFileExplorer();
+	struct ip {
+		std::string ip;
+	} ip;
 };
 
 class EventListener : public Rml::EventListener

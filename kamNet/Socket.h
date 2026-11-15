@@ -8,7 +8,6 @@
 #include "constants.h"
 #include "packet.h"
 #include<WS2tcpip.h>
-#include"raw_packet.h"
 
 namespace kamNet
 {

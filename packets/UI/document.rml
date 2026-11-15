@@ -1,12 +1,12 @@
 <rml>
 <head>
-    <title>Donk</title>
+    <title>document</title>
     <link type="text/rcss" href="style.rcss"/>
 </head>
-<body>
+<body data-model="IP">
     <h1>WAS</h1>
 
-    <button id="sendbutton" onclickcapture="client.print()">Send</button>
+    <button id="sendbutton">Send</button>
 
     <div id="filepath">
         <button id="openFileDialog">...</button>
@@ -19,5 +19,11 @@
         <p id="port" class="serverinfotext">Port: -</p>
 
     </div>
+
+    <div id="connection">
+        <input type="text" id="ipInput" data-value="ip"></input>
+        <button id="connect">connect</button>
+    </div>
+
 </body>
 </rml>
