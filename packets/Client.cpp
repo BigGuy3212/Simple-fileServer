@@ -6,12 +6,10 @@
 
 using namespace kamNet;
 
-const char* filePath = "C:/Users/kamil/Downloads/image.jpg";
-
 std::atomic<bool> shoudStop(false);
-
-int main() {
-
+//int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, int nCmdShow)
+int main() 
+{
 	Client client;
 	
 	if(client.WindowInit())

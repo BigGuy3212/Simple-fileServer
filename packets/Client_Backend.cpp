@@ -24,14 +24,10 @@ bool Client::connect(IPEndpoint ip)
 		if (socket.SetBlocking(true) != KResult::K_Sucess)
 			return false;
 
-		std::cout << "Socket created sucessfully!\n";
-
 		if (socket.Connect(ip) == KResult::K_Sucess)
 		{
 			if (socket.SetBlocking(false) == KResult::K_Sucess)
 			{
-				std::cout << "Succesfully connected to the server on " << ip.GetIpString() << "\n";
-
 				connection = TCPconnection(socket, ip);
 				masterFD.fd = connection.socket.GetHandle();
 				masterFD.events = POLLRDNORM;
@@ -47,15 +43,7 @@ bool Client::connect(IPEndpoint ip)
 				return true;
 			}
 		}
-		else
-		{
-			std::cerr << "Failed to connect to the server!\n";
-		}
 		socket.CloseSocket();
-	}
-	else
-	{
-		std::cerr << "Failed to create socket!\n";
 	}
 
 	return false;
@@ -509,7 +497,6 @@ void Client::LoadEventListeners()
 
 	EventListener* connectButtonListener = new EventListener([this]() {
 		port = stous(portString);
-		std::cout << port << std::endl;
 		connect(IPEndpoint(ip.data(), port));
 		});
 
@@ -596,6 +583,8 @@ void Client::disconnect()
 	document->GetElementById("servername")->SetInnerRML("Not connected");
 	document->GetElementById("ip")->SetInnerRML("IP: ");
 	document->GetElementById("port")->SetInnerRML("Port: ");
+
+	document->GetElementById("ipInput")->SetInnerRML("");
 }
 
 unsigned short Client::stous(std::string string)
