@@ -15,14 +15,19 @@
 
     <div id="serverinfo">
         <p id="servername" class="serverinfotext">Not connected</p>
-        <p id="ip" class="serverinfotext">External IP: -</p>
+        <p id="ip" class="serverinfotext">IP: -</p>
         <p id="port" class="serverinfotext">Port: -</p>
 
     </div>
 
     <div id="connection">
         <input type="text" id="ipInput" data-value="ip"></input>
+        <input type="text" id="portInput" data-value="port"></input>
         <button id="connect">connect</button>
+
+        <button id="disconnect">disconnect</button>
+
+        <button id="reconnect">reconnect</button>
     </div>
 
 </body>

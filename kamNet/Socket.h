@@ -23,6 +23,7 @@ namespace kamNet
 		KResult Listen(IPEndpoint ipendpoint, int backlog = 5);
 		KResult Accept(Socket& outSocket, IPEndpoint* ipendpoint = nullptr);
 		KResult Connect(IPEndpoint endpoint);
+		KResult Disconnect();
 		KResult Send(const void* data, int numberOfBytes, int& bytesSent);
 		KResult Recv(void* destination, int numberOfBytes, int& bytesRecived);
 		KResult SendAll(const void* data, int numberOfBytes);

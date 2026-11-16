@@ -3,6 +3,9 @@
 #include<sstream>
 #include<string>
 
+#undef max
+#undef min
+
 using namespace kamNet;
 
 int packetsRecived = 0;
@@ -14,50 +17,47 @@ int packetsSent = 0;
 bool Client::connect(IPEndpoint ip)
 {
 	isConnected = false;
-	if (Network::init())
+
+	socket = Socket(ip.GetIpVersion());
+	if (socket.CreateSocket() == KResult::K_Sucess)
 	{
-		std::cout << "Winsock API started up successfully!\n";
+		if (socket.SetBlocking(true) != KResult::K_Sucess)
+			return false;
 
-		socket = Socket(ip.GetIpVersion());
-		if (socket.CreateSocket() == KResult::K_Sucess)
+		std::cout << "Socket created sucessfully!\n";
+
+		if (socket.Connect(ip) == KResult::K_Sucess)
 		{
-			if (socket.SetBlocking(true) != KResult::K_Sucess)
-				return false;
-
-			std::cout << "Socket created sucessfully!\n";
-
-			if (socket.Connect(ip) == KResult::K_Sucess)
+			if (socket.SetBlocking(false) == KResult::K_Sucess)
 			{
-				if (socket.SetBlocking(false) == KResult::K_Sucess)
-				{
-					std::cout << "Succesfully connected to the server on " << ip.GetIpString() << "\n";
+				std::cout << "Succesfully connected to the server on " << ip.GetIpString() << "\n";
 
-					connection = TCPconnection(socket, ip);
-					masterFD.fd = connection.socket.GetHandle();
-					masterFD.events = POLLRDNORM;
-					masterFD.revents = 0;
+				connection = TCPconnection(socket, ip);
+				masterFD.fd = connection.socket.GetHandle();
+				masterFD.events = POLLRDNORM;
+				masterFD.revents = 0;
 
 
-					std::shared_ptr<Packet> helloPacket = std::make_shared<Packet>(packetType::PT_info);
-					*helloPacket << std::string("Hello from client\n");
+				std::shared_ptr<Packet> helloPacket = std::make_shared<Packet>(packetType::PT_info);
+				*helloPacket << std::string("Hello from client\n");
 
-					connection.pm_outgoing.Append(helloPacket);
+				connection.pm_outgoing.Append(helloPacket);
 
-					isConnected = true;
-					return true;
-				}
+				isConnected = true;
+				return true;
 			}
-			else
-			{
-				std::cerr << "Failed to connect to the server!\n";
-			}
-			socket.CloseSocket();
 		}
 		else
 		{
-			std::cerr << "Failed to create socket!\n";
+			std::cerr << "Failed to connect to the server!\n";
 		}
+		socket.CloseSocket();
 	}
+	else
+	{
+		std::cerr << "Failed to create socket!\n";
+	}
+
 	return false;
 }
 #pragma endregion NetworkInit
@@ -303,8 +303,8 @@ bool Client::processPacket(std::shared_ptr<Packet> packet)
 		}
 
 		document->GetElementById("servername")->SetInnerRML(parsedInfo[2]);
-		document->GetElementById("ip")->SetInnerRML(parsedInfo[0]);
-		document->GetElementById("port")->SetInnerRML(parsedInfo[1]);
+		document->GetElementById("ip")->SetInnerRML("IP: " + parsedInfo[0]);
+		document->GetElementById("port")->SetInnerRML("Port: " + parsedInfo[1]);
 		
 		break;
 	}
@@ -417,7 +417,7 @@ bool Client::WindowInit()
 
 	Shell::Initialize();
 
-	Backend::Initialize("Donk", 800, 800, true);
+	Backend::Initialize("Simple-FileServer Client", 1200, 960, true);
 
 	Rml::SetSystemInterface(Backend::GetSystemInterface());
 	Rml::SetRenderInterface(Backend::GetRenderInterface());
@@ -427,11 +427,16 @@ bool Client::WindowInit()
 		return false;
 	}
 
-	context = Rml::CreateContext("Donk", Rml::Vector2i(800, 800));
+	context = Rml::CreateContext("main", Rml::Vector2i(1200, 960));
 
 	Rml::Debugger::Initialise(context);
 
 	Rml::LoadFontFace("UI/Oswald-Regular.ttf");
+
+	Rml::DataModelConstructor constructor = context->CreateDataModel("IP");
+
+	constructor.Bind("ip", &ip);
+	constructor.Bind("port", &portString);
 
 	document = context->LoadDocument("UI/document.rml");
 	if (!document)
@@ -442,7 +447,7 @@ bool Client::WindowInit()
 
 	document->Show();
 	
-	this->LoadUI();
+	this->LoadEventListeners();
 
 	return true;
 }
@@ -475,7 +480,7 @@ EventListener::EventListener(std::function<void()> func)
 	function = func;
 }
 
-void Client::LoadUI()
+void Client::LoadEventListeners()
 {
 	//Send button
 	Rml::Element* button = document->GetElementById("sendbutton");
@@ -503,14 +508,35 @@ void Client::LoadUI()
 	Rml::Element* connectButton = document->GetElementById("connect");
 
 	EventListener* connectButtonListener = new EventListener([this]() {
-		std::cout << ip.ip << std::endl;
+		port = stous(portString);
+		std::cout << port << std::endl;
+		connect(IPEndpoint(ip.data(), port));
 		});
 
 	connectButton->AddEventListener(Rml::EventId::Click, connectButtonListener);
 
-	Rml::DataModelConstructor contstructor = context->CreateDataModel("IP");
+	//disconnect button
+	Rml::Element* disconnectButton = document->GetElementById("disconnect");
 
-	contstructor.Bind("ip", &ip.ip);
+	EventListener* disconnectButtonListener = new EventListener([this]() {
+		disconnect();
+		});
+
+	disconnectButton->AddEventListener(Rml::EventId::Click, disconnectButtonListener);
+
+	//reconnect button
+	Rml::Element* reconnectButton = document->GetElementById("reconnect");
+
+	EventListener* reconnectButtonListener = new EventListener([this]() {
+		port = stous(portString);
+
+		if (!IsConnected())
+		{
+			connect(IPEndpoint(ip.data(), port));
+		}
+		});
+
+	reconnectButton->AddEventListener(Rml::EventId::Click, reconnectButtonListener);
 }
 
 std::wstring Client::OpenFileExplorer()
@@ -560,4 +586,31 @@ std::wstring Client::OpenFileExplorer()
 	}
 
 	return path;
+}
+
+void Client::disconnect()
+{
+	socket.Disconnect();
+	runing = false;
+
+	document->GetElementById("servername")->SetInnerRML("Not connected");
+	document->GetElementById("ip")->SetInnerRML("IP: ");
+	document->GetElementById("port")->SetInnerRML("Port: ");
+}
+
+unsigned short Client::stous(std::string string)
+{
+	int number = std::stoi(string);
+
+	if (number < std::numeric_limits<short>::min() || number > std::numeric_limits<short>::max())
+	{
+		throw std::out_of_range("Value out of range for SHORT!");
+	}
+
+	if (number < 0)
+	{
+		throw std::out_of_range("Value too small for unsigned short!");
+	}
+
+	return static_cast<unsigned short>(number);
 }

@@ -39,7 +39,9 @@ public:
 	void shutdown();
 private:
 	void writeToFile(std::string& data);
-	void LoadUI();
+	void LoadEventListeners();
+	void disconnect();
+	unsigned short stous(std::string string);
 	bool isConnected = false;
 	bool runing = false;
 	Socket socket;
@@ -55,9 +57,9 @@ protected:
 	Rml::ElementDocument* document;
 	std::string filepath;
 	std::wstring OpenFileExplorer();
-	struct ip {
-		std::string ip;
-	} ip;
+	std::string ip;
+	std::string portString;
+	unsigned short port = 0;
 };
 
 class EventListener : public Rml::EventListener

@@ -350,4 +350,19 @@ namespace kamNet
 
 		return KResult::K_Sucess;
 	}
+
+	KResult Socket::Disconnect()
+	{
+		int result = 0;
+
+		result = shutdown(handle, SD_BOTH); 
+
+		if (result != 0)
+		{
+			int error = WSAGetLastError();
+			return KResult::K_GenericError;
+		}
+
+		return KResult::K_Sucess;
+	}
 }

@@ -41,7 +41,7 @@ button {
     border: 2px black;
     padding: 10px;
     flex-direction: column;
-    max-width: 100px;
+    max-width: 120px;
     margin: 10px;
 }
 

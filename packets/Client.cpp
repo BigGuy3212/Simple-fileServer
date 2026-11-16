@@ -6,9 +6,6 @@
 
 using namespace kamNet;
 
-const char* ip = "127.0.0.1";
-const unsigned short port = 4800;
-
 const char* filePath = "C:/Users/kamil/Downloads/image.jpg";
 
 std::atomic<bool> shoudStop(false);
@@ -20,17 +17,12 @@ int main() {
 	if(client.WindowInit())
 	{
 		std::thread update([&client]() {
-			if (!shoudStop.load())
+			Network::init();
+			while (!shoudStop.load())
 			{
-				if (client.connect(IPEndpoint(ip, port)))
+				if (client.IsConnected())
 				{
-					if (client.IsConnected())
-					{
-						while (client.IsConnected())
-						{
-							client.Frame();
-						}
-					}
+					client.Frame();
 				}
 			}
 		});
