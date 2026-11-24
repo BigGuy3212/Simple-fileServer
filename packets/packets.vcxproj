@@ -141,7 +141,7 @@
       <AdditionalIncludeDirectories>$(SolutionDir)lib\win\include;$(SolutionDir)lib/include; $(SolutionDir)lib\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <SubSystem>Console</SubSystem>
+      <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(SolutionDir)lib</AdditionalLibraryDirectories>
       <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies);ws2_32.lib;kamNet.lib;SDL3_image.lib;SDL3.lib;rmlui.lib;rmlui_debugger.lib;rmlui_shell.lib;shell32.lib;shlwapi.lib</AdditionalDependencies>
@@ -162,7 +162,7 @@
       <AdditionalIncludeDirectories>$(SolutionDir)lib\win\include;$(SolutionDir)lib/include; $(SolutionDir)lib\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <SubSystem>Console</SubSystem>
+      <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(SolutionDir)lib</AdditionalLibraryDirectories>
       <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies);ws2_32.lib;kamNet.lib;SDL3_image.lib;SDL3.lib;rmlui.lib;rmlui_debugger.lib;rmlui_shell.lib;shell32.lib;shlwapi.lib</AdditionalDependencies>

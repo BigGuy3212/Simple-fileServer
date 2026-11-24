@@ -295,7 +295,9 @@ bool Server::ProcessPacket(std::shared_ptr<Packet> packet)
 		std::string request;
 		*packet >> request;
 
-		latestFile = "C:/Users/kamil/Downloads/" + request;
+		latestFile = filesPath + request;
+
+		std::printf(latestFile.data());
 
 		file = std::ofstream(latestFile, std::ios::binary | std::ios::ate);
 

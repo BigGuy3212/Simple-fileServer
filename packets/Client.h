@@ -17,6 +17,9 @@
 #include<functional>
 #include<windows.h>
 #include<shobjidl.h>
+#include<filesystem>
+#include<commdlg.h>
+#include<vector>
 
 #ifndef RMLUI_BACKEND_SDL_GPU_DEBUG
 #define RMLUI_BACKEND_SDL_GPU_DEBUG false
@@ -31,35 +34,37 @@ public:
 	bool IsConnected();
 	bool Frame();
 	bool processPacket(std::shared_ptr<Packet> packet);
-	void sendFile(std::string path);
+	void sendFile(std::filesystem::path path);
 	void downloadFile(std::string path);
 	bool WindowInit();
 	void WindowFrame();
 	bool IsRunning();
 	void shutdown();
+	
 private:
 	void writeToFile(std::string& data);
 	void LoadEventListeners();
-	void disconnect();
 	unsigned short stous(std::string string);
 	bool isConnected = false;
 	bool runing = false;
 	Socket socket;
 	WSAPOLLFD masterFD;
 	WSAPOLLFD useFD;
-	std::string latestFile;
+	std::filesystem::path latestFile;
 	std::string buf;
 	std::ofstream file;
+	
 protected:
 	TCPconnection connection;
 	void CloseConnection(std::string reason);
 	Rml::Context* context = nullptr;
 	Rml::ElementDocument* document;
-	std::string filepath;
-	std::wstring OpenFileExplorer();
+	std::filesystem::path filepath;
+	std::filesystem::path OpenFileExplorer();
 	std::string ip;
 	std::string portString;
 	unsigned short port = 0;
+	
 };
 
 class EventListener : public Rml::EventListener
@@ -76,4 +81,19 @@ public:
 	}
 
 	std::function<void()> function;
+};
+
+class Console
+{
+public:
+	Console(Rml::Element* console, Rml::ElementDocument* document);
+	Console() {}
+	void log(std::string line);
+	void clear();
+	std::string idenifier{""};
+private:
+	std::vector<std::string> consoleLine;
+	Rml::Element* console;
+	Rml::ElementDocument* document;
+	int amountOfLogs = 0;
 };

@@ -3,6 +3,8 @@ body {
     width: 100%;
     font-family: Oswald-Regular;
     height: 100%;
+    display: flex;
+    flex-direction: column;
 }
 
 @font-face {
@@ -19,21 +21,20 @@ button {
     background-color: #b45757;
     border: 2px black;
     padding: 5px;
-    margin: 10px;
 }
 
-#path {
+.pathText {
     font-size: 1.5em;
     color: #000000;
 }
 
 .serverinfotext {
-    font-size: 1.3em;
+    font-size: 3em;
     color: black;
 }
 
 #servername {
-    font-size: 1.5em;
+    font-size: 3.5em;
 }
 
 #serverinfo {
@@ -43,6 +44,7 @@ button {
     flex-direction: column;
     max-width: 120px;
     margin: 10px;
+    min-width: 300px;
 }
 
 input {
@@ -57,4 +59,77 @@ input {
     display: flex;
     flex-direction: column;
     max-width: 200px;
+    margin: 5px;
+    float: right;
+}
+
+/*div {
+    border: 2px black;
+}*/
+
+.downloadUpload {
+    display: flex;
+    flex-direction: column;
+    padding: 5px;
+    max-width: 300px;
+    margin: 10px;
+    max-height: 80px;
+    border: 2px black;
+}
+
+.pathTextDiv {
+    display: flex;
+    min-width: 70px;
+    height: 30px;
+    margin-bottom: 5px;
+    overflow: hidden;
+    border: 2px black;
+}
+
+.downloadUploadButtons {
+    display: flex;
+    max-width: 80px;
+}
+
+#terminal {
+    width: 500px;
+    height: 300px;
+    border: 2px black;
+    padding: 5px;
+    overflow: hidden;
+}
+
+#terminalDiv {
+    padding: 5px;
+    justify-content: space-between;
+    display: flex;
+}
+
+#TopSquare {
+    display: flex;
+    padding: 5px;
+    flex-direction: column;
+}
+
+#TopSquare2 {
+    display: flex;
+    justify-content: space-between;
+    padding: 5px;
+}
+
+#files {
+    min-width: 700px;
+    min-height: 300px;
+    border: 2px black;
+}
+
+.sendButtons {
+    margin: 5px;
+    display: flex;
+}
+
+#console {
+    color: #797676;
+    font-size: 20px;
+    font-family: Oswald-Regular;
 }

@@ -25,4 +25,5 @@ private:
 	std::string buf;
 	std::ofstream file;
 	ServerInfo Serverinfo;
+	std::string filesPath{"C:/Users/kamil/Downloads/ServerOut/"};
 };

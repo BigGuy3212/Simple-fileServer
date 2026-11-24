@@ -7,8 +7,8 @@
 using namespace kamNet;
 
 std::atomic<bool> shoudStop(false);
-//int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, int nCmdShow)
-int main() 
+int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, int nCmdShow)
+//int main() 
 {
 	Client client;
 	

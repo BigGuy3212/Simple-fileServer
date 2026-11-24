@@ -11,6 +11,8 @@ using namespace kamNet;
 int packetsRecived = 0;
 int packetsSent = 0;
 
+Console console;
+
 #pragma region Network
 
 #pragma region NetworkInit
@@ -236,7 +238,9 @@ bool Client::processPacket(std::shared_ptr<Packet> packet)
 	{
 		std::string chatmessage;
 		*packet >> chatmessage;
-		std::cout << "INFO: " << chatmessage << std::endl;
+
+		console.log(chatmessage);
+
 		break;
 	}
 	case packetType::PT_upload:
@@ -244,9 +248,7 @@ bool Client::processPacket(std::shared_ptr<Packet> packet)
 		std::string request;
 		*packet >> request;
 
-		latestFile = "C:/Users/kamil/Downloads/" + request;
-
-		file = std::ofstream("C:/Users/kamil/Downloads/" + request, std::ios::binary);
+		file = std::ofstream(latestFile.string() + request, std::ios::binary);
 
 		break;
 	}
@@ -266,7 +268,7 @@ bool Client::processPacket(std::shared_ptr<Packet> packet)
 	{
 		file.close();
 
-		std::cout << "Recived " << packetsRecived << " packets" << std::endl;
+		console.log("Recived " + std::to_string(packetsRecived) + " packets");
 
 		packetsRecived = 0;
 		
@@ -298,7 +300,7 @@ bool Client::processPacket(std::shared_ptr<Packet> packet)
 	}
 
 	default:
-		std::cout << "Unknown packet type - " << packet->GetPacketType() << std::endl;
+		console.log("Unknown packet type - " + std::to_string(packet->GetPacketType()));
 		return false;
 	}
 	return true;
@@ -311,25 +313,29 @@ void Client::CloseConnection(std::string reason)
 	masterFD.fd = 0;
 	isConnected = false;
 	connection.Close();
+
+	document->GetElementById("servername")->SetInnerRML("Not connected");
+	document->GetElementById("ip")->SetInnerRML("IP: ");
+	document->GetElementById("port")->SetInnerRML("Port: ");
 }
 
 #pragma region FileHandling
-void Client::sendFile(std::string path)
+void Client::sendFile(std::filesystem::path path)
 {
-	std::cout << "sending file...\n";
+	console.log("sending file...");
 
 	std::shared_ptr<Packet> request = std::make_shared<Packet>(packetType::PT_upload);
-	*request << std::string("image2.jpg");
+	*request << std::string(path.filename().string());
 
 	connection.pm_outgoing.Append(request);
 
 	int bytesRead = 0;
 
-	std::ifstream file(path, std::ios::ate | std::ios::binary);
+	std::ifstream file(path.string(), std::ios::ate | std::ios::binary);
 
 	if (!file.is_open())
 	{
-		std::cout << "Could not open file!" << std::endl;
+		console.log("could not open file!");
 	}
 
 	std::streamsize size = file.tellg();
@@ -375,7 +381,7 @@ void Client::sendFile(std::string path)
 
 	connection.pm_outgoing.Append(endFile);
 
-	std::cout << "Sent " << packetsSent << " packets" << std::endl;
+	console.log("Sent " + std::to_string(packetsSent) + " packets");
 
 	packetsSent = 0;
 }
@@ -434,6 +440,9 @@ bool Client::WindowInit()
 	}
 
 	document->Show();
+
+	console = Console(document->GetElementById("terminal"), document);
+	console.idenifier = ">>> ";
 	
 	this->LoadEventListeners();
 
@@ -474,7 +483,7 @@ void Client::LoadEventListeners()
 	Rml::Element* button = document->GetElementById("sendbutton");
 
 	EventListener* listener = new EventListener([this]() {
-		sendFile(filepath);
+		sendFile(filepath.string());
 		});
 
 	button->AddEventListener(Rml::EventId::Click, listener);
@@ -483,11 +492,10 @@ void Client::LoadEventListeners()
 	Rml::Element* openFile = document->GetElementById("openFileDialog");
 
 	EventListener* openFilelistener = new EventListener([this]() {
-		std::wstring wpath = this->OpenFileExplorer();
-		filepath = std::string(wpath.begin(), wpath.end());
+		filepath = this->OpenFileExplorer();
 
-		Rml::Element* path = document->GetElementById("path");
-		path->SetInnerRML(filepath);
+		Rml::Element* path = document->GetElementById("uploadPath");
+		path->SetInnerRML(filepath.filename().string());
 		});
 
 	openFile->AddEventListener(Rml::EventId::Click, openFilelistener);
@@ -506,7 +514,7 @@ void Client::LoadEventListeners()
 	Rml::Element* disconnectButton = document->GetElementById("disconnect");
 
 	EventListener* disconnectButtonListener = new EventListener([this]() {
-		disconnect();
+		CloseConnection("Disconnect");
 		});
 
 	disconnectButton->AddEventListener(Rml::EventId::Click, disconnectButtonListener);
@@ -524,67 +532,72 @@ void Client::LoadEventListeners()
 		});
 
 	reconnectButton->AddEventListener(Rml::EventId::Click, reconnectButtonListener);
+
+	//Clear console
+	Rml::Element* clearConsole = document->GetElementById("clearConsole");
+
+	EventListener* clearConsoleListener = new EventListener([this]() {
+		console.clear();
+		});
+
+	clearConsole->AddEventListener(Rml::EventId::Click, clearConsoleListener);
+
+	//Download
+	Rml::Element* download = document->GetElementById("downloadButton");
+
+	EventListener* downloadListener = new EventListener([this]() {
+		downloadFile("");
+		});
+
+	//DownloadPath
+	Rml::Element* downloadPath = document->GetElementById("openDownloadFileDialog");
+
+	EventListener* downloadPathListener = new EventListener([this]() {
+		latestFile = OpenFileExplorer();
+		});
+
+	downloadPath->AddEventListener(Rml::EventId::Click, downloadPathListener);
 }
 
-std::wstring Client::OpenFileExplorer()
+std::filesystem::path Client::OpenFileExplorer()
 {
 	std::wstring path = L"";
 
-	HRESULT result = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
+	HRESULT hr = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
+	if (SUCCEEDED(hr)) {
+		IFileOpenDialog* pFileOpen;
 
-	if (SUCCEEDED(result))
-	{
-		IFileOpenDialog* pFileOpen = nullptr;
+		hr = CoCreateInstance(CLSID_FileOpenDialog, NULL, CLSCTX_ALL, IID_IFileOpenDialog, reinterpret_cast<void**>(&pFileOpen));
+		if (SUCCEEDED(hr)) {
+			hr = pFileOpen->Show(NULL);
 
-		result = CoCreateInstance(CLSID_FileOpenDialog, NULL, CLSCTX_ALL, IID_IFileOpenDialog, reinterpret_cast<void**>(&pFileOpen));
+			if (SUCCEEDED(hr)) {
+				IShellItem* pItem;
+				hr = pFileOpen->GetResult(&pItem);
+				if (SUCCEEDED(hr)) {
+					PWSTR pszFilePath;
+					hr = pItem->GetDisplayName(SIGDN_FILESYSPATH, &pszFilePath);
 
-		if (SUCCEEDED(result))
-		{
-			COMDLG_FILTERSPEC fileTypes[] = { { L"All files", L"*.*" } };
-
-			pFileOpen->SetFileTypes(ARRAYSIZE(fileTypes), fileTypes);
-
-			result = pFileOpen->Show(NULL);
-
-			if (SUCCEEDED(result))
-			{
-				IShellItem* pItem = nullptr;
-
-				result = pFileOpen->GetResult(&pItem);
-				if (SUCCEEDED(result))
-				{
-					PWSTR pszFilePath = nullptr;
-
-					result = pItem->GetDisplayName(SIGDN_FILESYSPATH, &pszFilePath);
-					if (SUCCEEDED(result))
-					{
+					if (SUCCEEDED(hr)) {
 						path = pszFilePath;
 						CoTaskMemFree(pszFilePath);
 					}
-
 					pItem->Release();
 				}
 			}
-
 			pFileOpen->Release();
 		}
-
 		CoUninitialize();
 	}
 
-	return path;
-}
-
-void Client::disconnect()
-{
-	socket.Disconnect();
-	runing = false;
-
-	document->GetElementById("servername")->SetInnerRML("Not connected");
-	document->GetElementById("ip")->SetInnerRML("IP: ");
-	document->GetElementById("port")->SetInnerRML("Port: ");
-
-	document->GetElementById("ipInput")->SetInnerRML("");
+	if (path != L"")
+	{
+		return std::filesystem::path(path);
+	}
+	else
+	{
+		return std::filesystem::path("");
+	}
 }
 
 unsigned short Client::stous(std::string string)
@@ -603,3 +616,43 @@ unsigned short Client::stous(std::string string)
 
 	return static_cast<unsigned short>(number);
 }
+
+#pragma region Console
+
+Console::Console(Rml::Element* console, Rml::ElementDocument* document)
+{
+	this->console = console;
+	this->document = document;
+}
+
+void Console::log(std::string line)
+{
+	if (amountOfLogs > 11)
+	{
+		console->RemoveChild(document->GetElementById("console"));
+		console->RemoveChild(document->GetElementById("nextLine"));
+		amountOfLogs--;
+	}
+
+	Rml::ElementPtr textObj = document->CreateElement("p");
+	Rml::ElementPtr text = document->CreateTextNode(idenifier + line);
+	textObj->AppendChild(std::move(text));
+	textObj->SetId("console");
+
+	console->AppendChild(std::move(textObj));
+	Rml::ElementPtr nextline = document->CreateElement("br");
+	nextline->SetId("nextLine");
+	console->AppendChild(std::move(nextline));
+
+	consoleLine.push_back(line);
+	amountOfLogs++;
+}
+
+void Console::clear()
+{
+	for (int i = 0; i < amountOfLogs; i++)
+	{		
+		console->RemoveChild(document->GetElementById("console"));
+	}
+}
+#pragma endregion Console

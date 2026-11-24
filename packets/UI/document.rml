@@ -6,28 +6,58 @@
 <body data-model="IP">
     <h1>WAS</h1>
 
-    <button id="sendbutton">Send</button>
+    <div id="TopSquare">
+        <div id="TopSquare2">
+            <div style="display: flex; flex-direction: column; flex: 1;">
+                <div class="downloadUpload">
+                    <div class="pathTextDiv">
+                        <p id="uploadPath" class="pathText"></p>
+                    </div>
+                    <div class="downloadUploadButtons">
+                        <button id="sendbutton" class="sendButtons">Send</button>
+                        <button id="openFileDialog" class="sendButtons">...</button>
+                    </div>
+                </div>
 
-    <div id="filepath">
-        <button id="openFileDialog">...</button>
-        <p id="path"></p>
+                <div class="downloadUpload">
+                    <div class="pathTextDiv">
+                        <p id="downloadPath" class="pathText"></p>
+                    </div>
+                    <div class="downloadUploadButtons">
+                        <button id="downloadButton" class="sendButtons">Download</button>
+                        <button id="openDownloadFileDialog" class="sendButtons">...</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="files">
+
+            </div>
+        </div>
+        
+        <div id="connection">
+            <input type="text" id="ipInput" data-value="ip"></input>
+            <input type="text" id="portInput" data-value="port"></input>
+            <button id="connect">connect</button>
+
+            <button id="disconnect">disconnect</button>
+
+            <button id="reconnect">reconnect</button>
+        </div>
     </div>
+    
+    <div id="terminalDiv">
+        <div id="serverinfo">
+            <p id="servername" class="serverinfotext">Not connected</p>
+            <p id="ip" class="serverinfotext">IP: -</p>
+            <p id="port" class="serverinfotext">Port: -</p>
 
-    <div id="serverinfo">
-        <p id="servername" class="serverinfotext">Not connected</p>
-        <p id="ip" class="serverinfotext">IP: -</p>
-        <p id="port" class="serverinfotext">Port: -</p>
+        </div>
 
-    </div>
+        <button id="clearConsole">Clear</button>
+        <div id="terminal">
 
-    <div id="connection">
-        <input type="text" id="ipInput" data-value="ip"></input>
-        <input type="text" id="portInput" data-value="port"></input>
-        <button id="connect">connect</button>
-
-        <button id="disconnect">disconnect</button>
-
-        <button id="reconnect">reconnect</button>
+        </div>
     </div>
 
 </body>
